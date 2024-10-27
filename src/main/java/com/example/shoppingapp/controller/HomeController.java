@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.security.Principal;
+import java.util.HashSet;
 
 @Controller
 public class HomeController {
@@ -23,15 +24,19 @@ public class HomeController {
     public String home(Model model, @AuthenticationPrincipal Principal principal, HttpSession session) {
         model.addAttribute("products", productRepository.findAll());
 
-        Order order;
-        if (principal != null) {
-            // Użytkownik zalogowany
-            order = (Order) session.getAttribute("cart");
-        } else {
-            // Użytkownik niezalogowany
-            order = (Order) session.getAttribute("guestCart");
+        // Pobierz koszyk z sesji lub utwórz nowy, jeśli jeszcze nie istnieje
+        Order order = (Order) session.getAttribute("cart");
+        if (order == null) {
+            order = new Order();
+            order.setOrderItems(new HashSet<>());
+            session.setAttribute("cart", order);
         }
+
+        // Oblicz liczbę produktów w koszyku
+        int itemCount = (order.getOrderItems() != null) ? order.getOrderItems().size() : 0;
+
         model.addAttribute("order", order);
+        model.addAttribute("itemCount", itemCount); // Przekazanie liczby produktów do widoku
 
         return "home";
     }

@@ -1,23 +1,47 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="pl" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Koszyk</title>
+    <link rel="stylesheet" href="/css/cart.css">
 </head>
 <body>
-<h1>Twój koszyk</h1>
+<div class="container">
+    <h2 class="cart-title">Twój koszyk</h2>
 
-<div th:if="${order.orderItems.size() == 0}">
-    <p>Koszyk jest pusty.</p>
-</div>
-<div th:if="${order.orderItems.size() > 0}">
-    <ul>
-        <li th:each="item : ${order.orderItems}">
-            <span th:text="${item.product.name}">Nazwa produktu</span>
-            <span th:text="${item.price}">Cena</span>
-            <span th:text="${item.quantity}">Ilość</span>
-        </li>
-    </ul>
-    <p>Łączna kwota: <span th:text="${order.totalPrice}"></span></p>
+    <div th:if="${message}" class="message">
+        <p th:text="${message}"></p>
+    </div>
+
+    <div th:if="${order.orderItems.size() > 0}" class="cart-content">
+        <div th:each="item : ${order.orderItems}" class="product-item">
+            <p class="product-name" th:text="${item.product.name}">Model</p>
+            <p class="product-price" th:text="'Cena za sztukę: ' + ${item.product.price} + ' zł'">Cena za sztukę</p>
+            <p class="product-quantity" th:text="'Ilość: ' + ${item.quantity}">Ilość</p>
+            <p class="item-total-price" th:text="'Łączna cena: ' + ${item.totalItemPrice} + ' zł'">Łączna cena</p>
+            <hr>
+        </div>
+        <p class="total-price" th:text="'Łączna cena całkowita: ' + ${order.totalPrice} + ' zł'">Łączna cena całkowita</p>
+
+        <div class="cart-actions">
+            <form th:action="@{/cart/placeOrder}" method="post" class="action-form">
+                <button type="submit" class="confirm-btn">Złóż zamówienie</button>
+            </form>
+
+            <form th:action="@{/cart/cancel}" method="post" class="action-form">
+                <button type="submit" class="cancel-btn">Anuluj zamówienie</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${order.orderItems.size() == 0}" class="empty-cart">
+        <p>Twój koszyk jest pusty.</p>
+    </div>
+
+    <div class="back-home">
+        <a href="/home" class="back-home-btn">Wróć do sklepu</a>
+    </div>
 </div>
 </body>
 </html>

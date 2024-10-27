@@ -25,9 +25,16 @@ public class OrderItem {
     private int quantity;
 
     @Column(nullable = false)
-    private BigDecimal price;
+    private BigDecimal price; // Cena jednostkowa produktu
 
-    //settery i gettery
+    @Column(nullable = false)
+    private BigDecimal totalItemPrice; // Łączna cena za dany produkt (quantity * price)
+
+    // Konstruktor bezargumentowy
+    public OrderItem() {
+    }
+
+    // Gettery i settery
     public Long getId() {
         return id;
     }
@@ -50,6 +57,10 @@ public class OrderItem {
 
     public void setProduct(Product product) {
         this.product = product;
+        // Upewniamy się, że cena jednostkowa jest ustawiona zgodnie z produktem
+        this.price = product.getPrice();
+        // Aktualizujemy całkowitą cenę
+        updateTotalItemPrice();
     }
 
     public int getQuantity() {
@@ -58,6 +69,8 @@ public class OrderItem {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+        // Aktualizujemy całkowitą cenę, gdy zmienia się ilość
+        updateTotalItemPrice();
     }
 
     public BigDecimal getPrice() {
@@ -66,5 +79,24 @@ public class OrderItem {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+        // Aktualizujemy całkowitą cenę, gdy zmienia się cena jednostkowa
+        updateTotalItemPrice();
+    }
+
+    public BigDecimal getTotalItemPrice() {
+        return totalItemPrice;
+    }
+
+    public void setTotalItemPrice(BigDecimal totalItemPrice) {
+        this.totalItemPrice = totalItemPrice;
+    }
+
+    // Metoda pomocnicza do aktualizacji totalItemPrice
+    private void updateTotalItemPrice() {
+        if (this.price != null && this.quantity > 0) {
+            this.totalItemPrice = this.price.multiply(BigDecimal.valueOf(this.quantity));
+        } else {
+            this.totalItemPrice = BigDecimal.ZERO;
+        }
     }
 }

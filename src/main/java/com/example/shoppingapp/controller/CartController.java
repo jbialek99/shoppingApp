@@ -33,13 +33,11 @@ public class CartController {
         this.userRepository = userRepository;
     }
 
-    // Endpoint do dodawania produktu do koszyka
     @PostMapping("/add/{productId}")
     public String addToCart(@PathVariable Long productId, @AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
         Order order;
 
         if (principal != null) {
-            // Zalogowany użytkownik
             User user = userRepository.findByUsername(principal.getName()).orElseThrow(() -> new RuntimeException("User not found"));
             Optional<Order> cart = orderRepository.findByUserAndStatus(user, "PENDING");
 
@@ -51,7 +49,6 @@ public class CartController {
                 return orderRepository.save(newOrder);
             });
         } else {
-            // Niezalogowany użytkownik - koszyk w sesji
             order = (Order) session.getAttribute("cart");
             if (order == null) {
                 order = new Order();
@@ -63,31 +60,39 @@ public class CartController {
 
         Product product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
 
-        // Sprawdzenie dostępności produktu
         if (product.getStock() <= 0) {
             redirectAttributes.addFlashAttribute("message", "Przepraszamy, ale obecnie nie mamy tego produktu na stanie.");
             return "redirect:/home";
         }
 
-        // Dodawanie produktu do koszyka
-        OrderItem orderItem = new OrderItem();
-        orderItem.setOrder(order);
-        orderItem.setProduct(product);
-        orderItem.setQuantity(1);
-        orderItem.setPrice(product.getPrice());
+        Optional<OrderItem> existingItem = order.getOrderItems().stream()
+                .filter(item -> item.getProduct().getId().equals(productId))
+                .findFirst();
 
-        order.getOrderItems().add(orderItem);
-        order.setTotalPrice(order.getTotalPrice().add(product.getPrice()));
+        if (existingItem.isPresent()) {
+            OrderItem orderItem = existingItem.get();
+            orderItem.setQuantity(orderItem.getQuantity() + 1);
+            orderItem.setTotalItemPrice(orderItem.getProduct().getPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity())));
+        } else {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(order);
+            orderItem.setProduct(product);
+            orderItem.setQuantity(1);
+            orderItem.setPrice(product.getPrice());
+            orderItem.setTotalItemPrice(product.getPrice());
+            order.getOrderItems().add(orderItem);
+        }
 
-        // Zmniejszenie stocku produktu o 1
+        order.setTotalPrice(order.getOrderItems().stream()
+                .map(OrderItem::getTotalItemPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
+
         product.setStock(product.getStock() - 1);
         productRepository.save(product);
 
         if (principal != null) {
-            // Zapisz koszyk w bazie dla zalogowanego użytkownika
             orderRepository.save(order);
         } else {
-            // Zapisz koszyk w sesji dla niezalogowanego użytkownika
             session.setAttribute("cart", order);
         }
 
@@ -95,17 +100,14 @@ public class CartController {
         return "redirect:/home";
     }
 
-    // Endpoint do wyświetlania koszyka
     @GetMapping
     public String viewCart(Model model, @AuthenticationPrincipal Principal principal, HttpSession session) {
         Order order;
 
         if (principal != null) {
-            // Zalogowany użytkownik
             User user = userRepository.findByUsername(principal.getName()).orElseThrow(() -> new RuntimeException("User not found"));
             order = orderRepository.findByUserAndStatus(user, "PENDING").orElse(new Order());
         } else {
-            // Niezalogowany użytkownik - koszyk w sesji
             order = (Order) session.getAttribute("cart");
             if (order == null) {
                 order = new Order();
@@ -117,5 +119,60 @@ public class CartController {
 
         model.addAttribute("order", order);
         return "cart";
+    }
+
+    @PostMapping("/cancel")
+    public String cancelOrder(@AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
+        Order order;
+
+        if (principal != null) {
+            User user = userRepository.findByUsername(principal.getName()).orElseThrow(() -> new RuntimeException("User not found"));
+            order = orderRepository.findByUserAndStatus(user, "PENDING").orElse(null);
+            if (order != null) {
+                for (OrderItem item : order.getOrderItems()) {
+                    Product product = item.getProduct();
+                    product.setStock(product.getStock() + item.getQuantity());
+                    productRepository.save(product);
+                }
+                orderRepository.delete(order);
+            }
+        } else {
+            order = (Order) session.getAttribute("cart");
+            if (order != null) {
+                for (OrderItem item : order.getOrderItems()) {
+                    Product product = item.getProduct();
+                    product.setStock(product.getStock() + item.getQuantity());
+                    productRepository.save(product);
+                }
+                session.removeAttribute("cart");
+            }
+        }
+
+        redirectAttributes.addFlashAttribute("message", "Zamówienie zostało anulowane.");
+        return "redirect:/cart";
+    }
+
+    @PostMapping("/placeOrder")
+    public String placeOrder(@AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
+        Order order;
+
+        if (principal != null) {
+            User user = userRepository.findByUsername(principal.getName()).orElseThrow(() -> new RuntimeException("User not found"));
+            order = orderRepository.findByUserAndStatus(user, "PENDING").orElse(null);
+            if (order != null) {
+                order.setStatus("CONFIRMED");
+                orderRepository.save(order);
+            }
+        } else {
+            order = (Order) session.getAttribute("cart");
+            if (order != null) {
+                order.setStatus("CONFIRMED");
+                orderRepository.save(order);
+                session.removeAttribute("cart");
+            }
+        }
+
+        redirectAttributes.addFlashAttribute("message", "Zamówienie zostało złożone.");
+        return "redirect:/home";
     }
 }
