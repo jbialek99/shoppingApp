@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Koszyk</title>
+</head>
+<body>
+<h1>Twój koszyk</h1>
+
+<div th:if="${order.orderItems.size() == 0}">
+    <p>Koszyk jest pusty.</p>
+</div>
+<div th:if="${order.orderItems.size() > 0}">
+    <ul>
+        <li th:each="item : ${order.orderItems}">
+            <span th:text="${item.product.name}">Nazwa produktu</span>
+            <span th:text="${item.price}">Cena</span>
+            <span th:text="${item.quantity}">Ilość</span>
+        </li>
+    </ul>
+    <p>Łączna kwota: <span th:text="${order.totalPrice}"></span></p>
+</div>
+</body>
+</html>

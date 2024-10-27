@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <link rel="stylesheet" href="/css/home.css">
+</head>
+<body>
+<div class="container">
+    <!-- Sekcja komunikatu -->
+    <div th:if="${message}" style="color: green; padding: 10px; border: 1px solid green; margin-bottom: 15px;">
+        <p th:text="${message}"></p>
+    </div>
+
+    <!-- Nagłówek -->
+    <header>
+        <section>
+            <h2 sec:authorize="isAuthenticated()">Welcome to our site, <span th:text="${#authentication.name}"></span>!</h2>
+        </section>
+
+        <nav>
+            <!-- Linki dla niezalogowanych użytkowników -->
+            <a href="/login" sec:authorize="isAnonymous()" class="button-style">Zaloguj się</a>
+            <a href="/register" sec:authorize="isAnonymous()" class="button-style">Zarejestruj się</a>
+
+            <!-- Formularz wylogowania dla zalogowanych użytkowników -->
+            <span sec:authorize="isAuthenticated()">
+                <form action="/logout" method="post" style="display: inline;">
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                    <button type="submit" class="button-style">Wyloguj się</button>
+                </form>
+            </span>
+
+            <!-- Ikona koszyka -->
+            <a href="/cart" class="cart-icon">
+                <div class="cart-content">
+                    <img src="/images/cart-icon.jpg" alt="Koszyk" class="cart-image">
+
+                    <!-- Licznik produktów i suma cen w koszyku -->
+                    <div th:if="${order != null and order.orderItems != null and order.orderItems.size() > 0}"
+                         class="cart-badge" th:text="${order.orderItems.size()}">1</div>
+                    <p th:if="${order != null and order.orderItems != null and order.orderItems.size() > 0}"
+                       class="cart-total" th:text="${order.totalPrice} + ' zł'">4 677,00 zł</p>
+                    <p th:if="${order == null or order.orderItems == null or order.orderItems.size() == 0}"
+                       class="cart-empty">Koszyk</p>
+                </div>
+            </a>
+        </nav>
+    </header>
+
+    <!-- Produkty -->
+    <section class="product-section">
+        <div class="product-list">
+            <th:block th:each="product : ${products}">
+                <div class="product-item">
+                    <img th:src="@{${product.imageUrl}}" alt="Zdjęcie produktu" class="product-image">
+                    <h3 th:text="${product.name}">Produkt</h3>
+                    <p th:text="${product.description}">Opis produktu</p>
+                    <p th:text="'$' + ${product.price}">Cena</p>
+
+                    <!-- Przycisk dodający do koszyka -->
+                    <form th:action="@{/cart/add/{productId}(productId=${product.id})}" method="post">
+                        <button type="submit">Kup teraz</button>
+                    </form>
+                </div>
+            </th:block>
+        </div>
+    </section>
+
+    <!-- Stopka -->
+    <footer>
+        <p>&copy; 2024 projectShop Wszystkie prawa zastrzeżone.</p>
+    </footer>
+</div>
+</body>
+</html>

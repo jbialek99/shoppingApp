@@ -1,0 +1,148 @@
+/* Ogólny reset stylów */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Ustawienia dla body */
+body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #2980b9, #2c3e50);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Kontener formularza rejestracji */
+.login-container {
+    background-color: #ffffff; /* Białe tło */
+    padding: 40px 50px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Cień dla wyróżnienia */
+    border-radius: 12px;
+    width: 400px;
+    max-width: 90%; /* Responsywność */
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-container:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Nagłówek */
+h2 {
+    margin-bottom: 20px;
+    font-size: 28px;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+/* Stylizacja formularza */
+form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* Etykiety formularza */
+label {
+    text-align: left;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #34495e;
+}
+
+/* Pola input */
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #bdc3c7;
+    border-radius: 8px;
+    font-size: 16px;
+    width: 100%;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus {
+    border-color: #2980b9;
+    outline: none;
+}
+
+/* Przycisk Zarejestruj */
+button {
+    padding: 12px;
+    background-color: #2980b9;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 10px; /* Dodanie odstępu poniżej przycisku */
+}
+
+button:hover {
+    background-color: #1e6f9f;
+    box-shadow: 0 5px 15px rgba(41, 128, 185, 0.3);
+}
+.hint {
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+/* Przycisk Strona Główna */
+button.home-button {
+    background-color: #27ae60; /* Zielony kolor */
+}
+
+button.home-button:hover {
+    background-color: #219653; /* Ciemniejszy zielony po najechaniu */
+}
+
+/* Sekcja linku do logowania */
+p {
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+p a {
+    color: #2980b9;
+    text-decoration: none;
+}
+
+p a:hover {
+    text-decoration: underline;
+}
+
+/* Komunikaty o błędach */
+.error-message {
+    background-color: #e74c3c;
+    color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+}
+
+/* Animacja dla komunikatu o błędzie */
+.error-message {
+    animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
