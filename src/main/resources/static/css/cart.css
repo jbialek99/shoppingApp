@@ -1,34 +1,37 @@
-/* Styl głównego kontenera */
+/* General body and container styles */
 body {
-    background-color: #f0f4f8; /* Jasne tło dla lepszego kontrastu */
+    background-color: #121212; /* Ciemne tło dla całej strony */
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #e0e0e0; /* Jasny tekst */
 }
 
+/* Container styling */
 .container {
     max-width: 700px;
     margin: 40px auto;
     padding: 25px;
-    font-family: Arial, sans-serif;
-    color: #333;
-    background-color: #ffffff;
+    background-color: #1e1e1e; /* Ciemne tło dla kontenera */
     border-radius: 10px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
 }
 
 /* Nagłówek strony */
 .cart-title {
     text-align: center;
-    color: #333;
+    color: #e0e0e0;
     font-size: 2em;
     margin-bottom: 25px;
 }
 
 /* Sekcja komunikatu */
 .message {
-    color: green;
+    color: #ffffff;
     padding: 10px;
-    border: 1px solid green;
+    border: 1px solid #4caf50;
     margin-bottom: 20px;
-    background-color: #e8f5e9;
+    background-color: #2e7d32;
     text-align: center;
     border-radius: 5px;
 }
@@ -36,7 +39,7 @@ body {
 /* Styl dla wyświetlania produktów */
 .product-item {
     padding: 15px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #444;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -49,12 +52,12 @@ body {
 .product-name {
     font-weight: bold;
     font-size: 1.2em;
-    color: #444;
+    color: #e0e0e0;
 }
 
 .product-price, .product-quantity, .item-total-price {
     font-size: 1em;
-    color: #666;
+    color: #bdbdbd;
     margin: 5px 0;
 }
 
@@ -69,7 +72,7 @@ body {
     display: inline;
 }
 
-.decrease-btn, .remove-btn {
+.decrease-btn, .increase-btn, .remove-btn {
     margin: 5px;
     padding: 8px 12px;
     font-size: 0.9em;
@@ -77,25 +80,15 @@ body {
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
+    color: #e0e0e0; /* Jasny tekst */
+    background-color: #333; /* Ciemne, neutralne tło */
     transition: background-color 0.3s;
 }
 
-.decrease-btn {
-    background-color: #FFA726;
-    color: white;
-}
-
-.decrease-btn:hover {
-    background-color: #FB8C00;
-}
-
-.remove-btn {
-    background-color: #f44336;
-    color: white;
-}
-
+.decrease-btn:hover,
+.increase-btn:hover,
 .remove-btn:hover {
-    background-color: #e53935;
+    background-color: #555; /* Lekko jaśniejsze tło przy najechaniu */
 }
 
 /* Łączna cena koszyka */
@@ -103,10 +96,10 @@ body {
     text-align: right;
     font-size: 1.3em;
     font-weight: bold;
-    color: #333;
+    color: #ffffff;
     margin-top: 20px;
     padding-top: 10px;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid #444;
 }
 
 /* Styl przycisków akcji */
@@ -127,26 +120,14 @@ body {
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
+    color: #e0e0e0;
+    background-color: #333; /* Neutralne, ciemne tło */
     transition: background-color 0.3s, transform 0.2s;
 }
 
-.confirm-btn {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.confirm-btn:hover {
-    background-color: #45a049;
-    transform: scale(1.05);
-}
-
-.cancel-btn {
-    background-color: #f44336;
-    color: white;
-}
-
+.confirm-btn:hover,
 .cancel-btn:hover {
-    background-color: #e53935;
+    background-color: #555; /* Jaśniejsze tło przy najechaniu */
     transform: scale(1.05);
 }
 
@@ -156,9 +137,9 @@ body {
     font-size: 1.3em;
     color: #888;
     padding: 25px;
-    border: 1px solid #ddd;
+    border: 1px solid #444;
     border-radius: 8px;
-    background-color: #fafafa;
+    background-color: #2a2a2a;
 }
 
 /* Styl przycisku powrotu na stronę główną */
@@ -171,30 +152,14 @@ body {
     display: inline-block;
     padding: 12px 24px;
     font-size: 1.1em;
-    color: #333;
+    color: #e0e0e0;
     text-decoration: none;
-    border: 2px solid #333;
+    border: 2px solid #e0e0e0;
     border-radius: 5px;
     transition: background-color 0.3s, color 0.3s;
 }
 
 .back-home-btn:hover {
-    background-color: #333;
-    color: #fff;
-}
-.increase-btn {
-    background-color: #4CAF50;
-    color: white;
-    margin: 5px;
-    padding: 8px 12px;
-    font-size: 0.9em;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s;
-}
-
-.increase-btn:hover {
-    background-color: #388E3C;
+    background-color: #e0e0e0;
+    color: #121212;
 }

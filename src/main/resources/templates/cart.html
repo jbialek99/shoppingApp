@@ -25,11 +25,11 @@
 
             <div class="product-actions">
                 <form th:action="@{/cart/decreaseQuantity/{productId}(productId=${item.product.id})}" method="post" class="action-form-inline">
-                    <button type="submit" class="decrease-btn">- Zmniejsz ilość</button>
+                    <button type="submit" class="decrease-btn"> - </button>
                 </form>
 
                 <form th:action="@{/cart/increaseQuantity/{productId}(productId=${item.product.id})}" method="post" class="action-form-inline">
-                    <button type="submit" class="increase-btn">+ Dodaj</button>
+                    <button type="submit" class="increase-btn"> + </button>
                 </form>
 
                 <form th:action="@{/cart/removeItem/{productId}(productId=${item.product.id})}" method="post" class="action-form-inline">
@@ -57,7 +57,7 @@
     </div>
 
     <div class="back-home">
-        <a href="/home" class="back-home-btn">Wróć do sklepu</a>
+        <a href="/home" class="back-home-btn">Kontynuuj zakupy</a>
     </div>
 </div>
 </body>

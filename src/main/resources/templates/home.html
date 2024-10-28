@@ -7,44 +7,26 @@
     <link rel="stylesheet" href="/css/home.css">
 </head>
 <body>
+
+<!-- Czarny pasek nawigacyjny -->
+<div class="header-bar">
+    <!-- Ikona koszyka jako pierwszy element -->
+    <a href="/cart" class="cart-icon">
+        <img src="/images/cart-icon.jpg" alt="Koszyk">
+        <div th:if="${itemCount > 0}" class="cart-badge" th:text="${itemCount}">1</div>
+    </a>
+
+    <!-- Linki dla niezalogowanych użytkowników -->
+    <a href="/login" sec:authorize="isAnonymous()">Zaloguj się</a>
+    <a href="/register" sec:authorize="isAnonymous()">Zarejestruj się</a>
+</div>
+
+<!-- Główna zawartość strony -->
 <div class="container">
     <!-- Sekcja komunikatu -->
-    <div th:if="${message}" style="color: green; padding: 10px; border: 1px solid green; margin-bottom: 15px;">
-        <p th:text="${message}"></p>
+    <div th:if="${message}" class="alert-message alert-message-slide">
+        <p th:text="${message}">Produkt został dodany do koszyka</p>
     </div>
-
-    <!-- Nagłówek -->
-    <header>
-        <section>
-            <h2 sec:authorize="isAuthenticated()">Welcome to our site, <span th:text="${#authentication.name}"></span>!</h2>
-        </section>
-
-        <nav>
-            <!-- Linki dla niezalogowanych użytkowników -->
-            <a href="/login" sec:authorize="isAnonymous()" class="button-style">Zaloguj się</a>
-            <a href="/register" sec:authorize="isAnonymous()" class="button-style">Zarejestruj się</a>
-
-            <!-- Formularz wylogowania dla zalogowanych użytkowników -->
-            <span sec:authorize="isAuthenticated()">
-                <form action="/logout" method="post" style="display: inline;">
-                    <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
-                    <button type="submit" class="button-style">Wyloguj się</button>
-                </form>
-            </span>
-
-            <!-- Ikona koszyka -->
-            <a href="/cart" class="cart-icon">
-                <div class="cart-content">
-                    <img src="/images/cart-icon.jpg" alt="Koszyk" class="cart-image">
-
-                    <!-- Wyświetl liczbę produktów w koszyku, jeśli `itemCount` jest większe od 0 -->
-                    <div th:if="${itemCount > 0}" class="cart-badge" th:text="${itemCount}">1</div>
-                    <p th:if="${itemCount > 0}" class="cart-total" th:text="${order.totalPrice} + ' zł'">4 677,00 zł</p>
-                    <p th:if="${itemCount == 0}" class="cart-empty">Koszyk</p>
-                </div>
-            </a>
-        </nav>
-    </header>
 
     <!-- Produkty -->
     <section class="product-section">
@@ -71,7 +53,6 @@
             </th:block>
         </div>
     </section>
-
 
     <!-- Stopka -->
     <footer>
