@@ -14,9 +14,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/", "/home", "/register", "/login", "/cart", "/cart/**", "/css/**", "/js/**", "/images/**", "/error").permitAll()
-                        .requestMatchers("/my-data").authenticated() // Tylko zalogowani użytkownicy mogą uzyskać dostęp do /my-data
-                        .anyRequest().authenticated() // Wymaga uwierzytelnienia dla pozostałych stron
+                        .requestMatchers("/", "/home", "/register", "/login", "/cart", "/cart/**", "/checkout", "/checkout/submit", "/css/**", "/js/**", "/images/**", "/error").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
@@ -31,7 +30,7 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**")); // Wyłączenie CSRF dla API
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/checkout/submit", "/cart/**", "/api/**")); // Wyłączenie CSRF dla API, checkout/submit, cart
 
         return http.build();
     }

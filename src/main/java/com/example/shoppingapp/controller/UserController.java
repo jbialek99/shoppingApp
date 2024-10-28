@@ -102,10 +102,8 @@ public class UserController {
     }
 
     // Formularz danych osobistych użytkownika
-
     @GetMapping("/my-data")
     public String showMyDataForm(Model model, Authentication authentication) {
-        // Sprawdzamy, czy użytkownik jest zalogowany i uzyskujemy jego dane
         if (authentication != null && authentication.isAuthenticated()) {
             String username;
             if (authentication.getPrincipal() instanceof UserDetails) {
@@ -114,42 +112,54 @@ public class UserController {
                 username = authentication.getPrincipal().toString();
             }
 
-            // Wyszukujemy użytkownika po nazwie użytkownika
             Optional<User> userOptional = userRepository.findByUsername(username);
             if (userOptional.isPresent()) {
-                model.addAttribute("user", userOptional.get()); // Dodajemy obiekt `user` do modelu
+                model.addAttribute("user", userOptional.get());
             } else {
-                model.addAttribute("user", new User()); // Dla bezpieczeństwa dodajemy pusty obiekt
+                model.addAttribute("user", new User());
             }
         } else {
-            model.addAttribute("user", new User()); // Dla użytkowników niezalogowanych
+            model.addAttribute("user", new User());
         }
         return "my-data";
     }
-
 
     // Obsługa aktualizacji danych użytkownika
     @PostMapping("/my-data")
     public String updateMyData(User user, BindingResult result, Principal principal, RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            return "my-data"; // powrót do formularza przy błędzie
+            return "my-data";
         }
 
-        // Sprawdzenie, czy użytkownik jest zalogowany
         if (principal != null) {
             Optional<User> existingUserOptional = userRepository.findByUsername(principal.getName());
             if (existingUserOptional.isPresent()) {
                 User existingUser = existingUserOptional.get();
-                // Aktualizowanie danych osobistych użytkownika
                 existingUser.setFirstName(user.getFirstName());
                 existingUser.setLastName(user.getLastName());
                 existingUser.setAddress(user.getAddress());
                 existingUser.setPhone(user.getPhone());
-                userRepository.save(existingUser); // Zapisanie zmian w bazie danych
+                userRepository.save(existingUser);
             }
         }
 
         redirectAttributes.addFlashAttribute("message", "Pomyślnie ustawiono Twoje dane.");
-        return "redirect:/home"; // Przekierowanie na stronę główną
+        return "redirect:/home";
+    }
+
+    // Wyświetlenie formularza checkout z automatycznym wypełnieniem danych
+    @GetMapping("/checkout")
+    public String showCheckoutForm(Model model, @AuthenticationPrincipal Principal principal) {
+        if (principal != null) {
+            Optional<User> userOptional = userRepository.findByUsername(principal.getName());
+            if (userOptional.isPresent()) {
+                model.addAttribute("user", userOptional.get());
+            } else {
+                model.addAttribute("user", new User());
+            }
+        } else {
+            model.addAttribute("user", new User());
+        }
+        return "checkout";
     }
 }

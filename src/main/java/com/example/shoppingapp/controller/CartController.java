@@ -8,7 +8,10 @@ import com.example.shoppingapp.repository.OrderRepository;
 import com.example.shoppingapp.repository.ProductRepository;
 import com.example.shoppingapp.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -80,83 +83,119 @@ public class CartController {
 
     @Transactional
     @PostMapping("/placeOrder")
-    public String placeOrder(@AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes, Model model) {
+    public String placeOrder(@AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
         Order order = getOrderFromSessionOrDatabase(principal, session);
 
-        // Sprawdzenie danych wysyłki dla zalogowanego użytkownika
-        if (principal != null) {
-            User user = userRepository.findByUsername(principal.getName())
-                    .orElseThrow(() -> new RuntimeException("Użytkownik nie znaleziony"));
-
-            if (user.getAddress() == null || user.getPhone() == null || user.getFirstName() == null || user.getLastName() == null) {
-                model.addAttribute("user", user);
-                redirectAttributes.addFlashAttribute("message", "Proszę uzupełnić dane do wysyłki.");
-                return "redirect:/cart/checkout";
-            }
-        } else {
-            return "redirect:/cart/checkout";
-        }
-
-        boolean success = finalizeOrder(order, redirectAttributes);
-
-        if (!success) {
+        // Sprawdzamy, czy zamówienie ma produkty
+        if (order.getOrderItems().isEmpty()) {
+            redirectAttributes.addFlashAttribute("message", "Koszyk jest pusty, dodaj produkty przed złożeniem zamówienia.");
             return "redirect:/cart";
         }
 
-        // Usunięcie koszyka z sesji lub zapis statusu zamówienia jako "CONFIRMED"
-        if (principal != null) {
-            order.setStatus("CONFIRMED");
-            orderRepository.save(order);
-        } else {
-            session.removeAttribute("cart");
+        // Weryfikacja stanów magazynowych dla każdego produktu
+        for (OrderItem item : order.getOrderItems()) {
+            Product product = productRepository.findById(item.getProduct().getId())
+                    .orElseThrow(() -> new RuntimeException("Produkt nie znaleziony"));
+
+            if (product.getStock() < item.getQuantity()) {
+                redirectAttributes.addFlashAttribute("message",
+                        "Przepraszamy, ale produkt '" + product.getName() + "' jest dostępny w ilości " + product.getStock() + " sztuk.");
+                return "redirect:/cart"; // Pozostajemy na stronie koszyka
+            }
         }
 
-        redirectAttributes.addFlashAttribute("message", "Zamówienie zostało złożone.");
-        return "redirect:/home";
+        // Jeśli ilości są wystarczające, przekierowujemy do strony checkout
+        return "redirect:/cart/checkout";
     }
 
+    // Wyświetlenie formularza checkout z automatycznym wypełnieniem danych użytkownika
     @GetMapping("/checkout")
-    public String checkout(Model model, @AuthenticationPrincipal Principal principal) {
-        User user = (principal != null) ?
-                userRepository.findByUsername(principal.getName()).orElse(new User()) :
-                new User();
+    public String checkout(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user;
 
-        // Przekazanie obiektu użytkownika do formularza
+        if (authentication != null && authentication.isAuthenticated()
+                && authentication.getPrincipal() instanceof UserDetails) {
+
+            String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+            Optional<User> userOptional = userRepository.findByUsername(username);
+            user = userOptional.orElse(new User());
+
+            // Diagnostyczne logowanie danych użytkownika
+            System.out.println("Zalogowany użytkownik: " + username);
+            System.out.println("User details: " + user.getFirstName() + ", " + user.getLastName() + ", " + user.getAddress() + ", " + user.getPhone());
+        } else {
+            // Użytkownik nie jest zalogowany
+            user = new User();
+        }
+
         model.addAttribute("user", user);
         return "checkout";
     }
-
+    // Obsługa przesyłania formularza checkout
     @Transactional
     @PostMapping("/checkout/submit")
     public String submitCheckout(@ModelAttribute User user, @AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
+        System.out.println("Metoda submitCheckout została wywołana"); // Diagnostyczne logowanie
+
+        // Pobieramy zamówienie z sesji lub bazy
         Order order = getOrderFromSessionOrDatabase(principal, session);
 
+        // Sprawdzamy, czy zamówienie istnieje
+        if (order == null || order.getOrderItems().isEmpty()) {
+            System.out.println("Brak produktów w zamówieniu.");
+            redirectAttributes.addFlashAttribute("message", "Koszyk jest pusty, dodaj produkty przed złożeniem zamówienia.");
+            return "redirect:/cart";
+        }
+
+        // Aktualizacja danych użytkownika, jeśli jest zalogowany
         if (principal != null) {
+            System.out.println("Użytkownik zalogowany: " + principal.getName());
             User existingUser = userRepository.findByUsername(principal.getName())
                     .orElseThrow(() -> new RuntimeException("Użytkownik nie znaleziony"));
 
+            // Aktualizujemy dane użytkownika
             existingUser.setFirstName(user.getFirstName());
             existingUser.setLastName(user.getLastName());
             existingUser.setAddress(user.getAddress());
             existingUser.setPhone(user.getPhone());
             userRepository.save(existingUser);
-        }
-
-        boolean success = finalizeOrder(order, redirectAttributes);
-        if (!success) {
-            return "redirect:/cart";
-        }
-
-        if (principal != null) {
-            order.setStatus("CONFIRMED");
-            orderRepository.save(order);
         } else {
-            session.removeAttribute("cart");
+            System.out.println("Użytkownik niezalogowany przesyła zamówienie.");
         }
 
-        redirectAttributes.addFlashAttribute("message", "Dane do wysyłki zapisane. Zamówienie złożone!");
+        // Zmniejszamy stan magazynowy dla produktów w zamówieniu
+        for (OrderItem item : order.getOrderItems()) {
+            Product product = productRepository.findById(item.getProduct().getId())
+                    .orElseThrow(() -> new RuntimeException("Produkt nie znaleziony"));
+
+            if (product.getStock() < item.getQuantity()) {
+                System.out.println("Niedostateczna ilość produktu: " + product.getName());
+                redirectAttributes.addFlashAttribute("message", "Przepraszamy, ale produkt " + product.getName() + " jest dostępny w ograniczonej ilości.");
+                return "redirect:/cart";
+            }
+
+            // Aktualizacja stanu magazynowego
+            product.setStock(product.getStock() - item.getQuantity());
+            productRepository.save(product);
+        }
+
+        // Ustawienie statusu zamówienia na "CONFIRMED" i zapis w bazie
+        order.setStatus("CONFIRMED");
+        orderRepository.save(order);
+
+        // Czyszczenie koszyka z sesji dla niezalogowanych
+        if (principal == null) {
+            session.removeAttribute("cart");
+        } else {
+            // Można też rozważyć ustawienie nowego pustego zamówienia w bazie, jeśli użytkownik jest zalogowany
+        }
+
+        redirectAttributes.addFlashAttribute("message", "Zamówienie zostało złożone i zostanie zrealizowane.");
         return "redirect:/home";
     }
+
+
 
     @Transactional
     @PostMapping("/cancel")
@@ -175,6 +214,7 @@ public class CartController {
         return "redirect:/cart";
     }
 
+    // Obsługa zmniejszania ilości produktu
     @Transactional
     @PostMapping("/decreaseQuantity/{productId}")
     public String decreaseQuantity(@PathVariable Long productId, @AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
@@ -197,6 +237,7 @@ public class CartController {
         return "redirect:/cart";
     }
 
+    // Obsługa zwiększania ilości produktu
     @Transactional
     @PostMapping("/increaseQuantity/{productId}")
     public String increaseQuantity(@PathVariable Long productId, @AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
