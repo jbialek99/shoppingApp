@@ -39,7 +39,7 @@ public class CartController {
     public String viewCart(Model model, HttpSession session, @AuthenticationPrincipal Principal principal) {
         Order order = getOrderFromSessionOrDatabase(principal, session);
         model.addAttribute("order", order);
-        return "cart"; // Nazwa widoku Thymeleaf, np. cart.html
+        return "cart";
     }
 
     @Transactional
@@ -80,15 +80,30 @@ public class CartController {
 
     @Transactional
     @PostMapping("/placeOrder")
-    public String placeOrder(@AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
+    public String placeOrder(@AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes, Model model) {
         Order order = getOrderFromSessionOrDatabase(principal, session);
+
+        // Sprawdzenie danych wysyłki dla zalogowanego użytkownika
+        if (principal != null) {
+            User user = userRepository.findByUsername(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("Użytkownik nie znaleziony"));
+
+            if (user.getAddress() == null || user.getPhone() == null || user.getFirstName() == null || user.getLastName() == null) {
+                model.addAttribute("user", user);
+                redirectAttributes.addFlashAttribute("message", "Proszę uzupełnić dane do wysyłki.");
+                return "redirect:/cart/checkout";
+            }
+        } else {
+            return "redirect:/cart/checkout";
+        }
+
         boolean success = finalizeOrder(order, redirectAttributes);
 
         if (!success) {
             return "redirect:/cart";
         }
 
-        // Usuń koszyk z sesji lub ustaw status jako "CONFIRMED" i zapisz w bazie danych
+        // Usunięcie koszyka z sesji lub zapis statusu zamówienia jako "CONFIRMED"
         if (principal != null) {
             order.setStatus("CONFIRMED");
             orderRepository.save(order);
@@ -100,6 +115,48 @@ public class CartController {
         return "redirect:/home";
     }
 
+    @GetMapping("/checkout")
+    public String checkout(Model model, @AuthenticationPrincipal Principal principal) {
+        User user = (principal != null) ?
+                userRepository.findByUsername(principal.getName()).orElse(new User()) :
+                new User();
+
+        // Przekazanie obiektu użytkownika do formularza
+        model.addAttribute("user", user);
+        return "checkout";
+    }
+
+    @Transactional
+    @PostMapping("/checkout/submit")
+    public String submitCheckout(@ModelAttribute User user, @AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
+        Order order = getOrderFromSessionOrDatabase(principal, session);
+
+        if (principal != null) {
+            User existingUser = userRepository.findByUsername(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("Użytkownik nie znaleziony"));
+
+            existingUser.setFirstName(user.getFirstName());
+            existingUser.setLastName(user.getLastName());
+            existingUser.setAddress(user.getAddress());
+            existingUser.setPhone(user.getPhone());
+            userRepository.save(existingUser);
+        }
+
+        boolean success = finalizeOrder(order, redirectAttributes);
+        if (!success) {
+            return "redirect:/cart";
+        }
+
+        if (principal != null) {
+            order.setStatus("CONFIRMED");
+            orderRepository.save(order);
+        } else {
+            session.removeAttribute("cart");
+        }
+
+        redirectAttributes.addFlashAttribute("message", "Dane do wysyłki zapisane. Zamówienie złożone!");
+        return "redirect:/home";
+    }
 
     @Transactional
     @PostMapping("/cancel")
@@ -118,7 +175,6 @@ public class CartController {
         return "redirect:/cart";
     }
 
-    // Nowa metoda zmniejszenia ilości produktu
     @Transactional
     @PostMapping("/decreaseQuantity/{productId}")
     public String decreaseQuantity(@PathVariable Long productId, @AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
@@ -140,6 +196,7 @@ public class CartController {
         saveOrder(principal, session, order);
         return "redirect:/cart";
     }
+
     @Transactional
     @PostMapping("/increaseQuantity/{productId}")
     public String increaseQuantity(@PathVariable Long productId, @AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
@@ -160,7 +217,6 @@ public class CartController {
         return "redirect:/cart";
     }
 
-    // Nowa metoda usuwania pozycji z koszyka
     @Transactional
     @PostMapping("/removeItem/{productId}")
     public String removeItem(@PathVariable Long productId, @AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
@@ -172,8 +228,6 @@ public class CartController {
         saveOrder(principal, session, order);
         return "redirect:/cart";
     }
-
-    // Pomocnicze metody
 
     private Order getOrderFromSessionOrDatabase(Principal principal, HttpSession session) {
         if (principal != null) {
@@ -187,7 +241,15 @@ public class CartController {
                 return orderRepository.save(newOrder);
             });
         } else {
-            return (Order) session.getAttribute("cart");
+            Order order = (Order) session.getAttribute("cart");
+            if (order == null) {
+                order = new Order();
+                order.setStatus("PENDING");
+                order.setTotalPrice(BigDecimal.ZERO);
+                order.setOrderItems(new HashSet<>());
+                session.setAttribute("cart", order);
+            }
+            return order;
         }
     }
 

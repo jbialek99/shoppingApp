@@ -25,14 +25,17 @@
 
             <div class="product-actions">
                 <form th:action="@{/cart/decreaseQuantity/{productId}(productId=${item.product.id})}" method="post" class="action-form-inline">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                     <button type="submit" class="decrease-btn"> - </button>
                 </form>
 
                 <form th:action="@{/cart/increaseQuantity/{productId}(productId=${item.product.id})}" method="post" class="action-form-inline">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                     <button type="submit" class="increase-btn"> + </button>
                 </form>
 
                 <form th:action="@{/cart/removeItem/{productId}(productId=${item.product.id})}" method="post" class="action-form-inline">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                     <button type="submit" class="remove-btn">Usuń produkt</button>
                 </form>
             </div>
@@ -43,10 +46,12 @@
 
         <div class="cart-actions">
             <form th:action="@{/cart/placeOrder}" method="post" class="action-form">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <button type="submit" class="confirm-btn">Złóż zamówienie</button>
             </form>
 
             <form th:action="@{/cart/cancel}" method="post" class="action-form">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <button type="submit" class="cancel-btn">Anuluj zamówienie</button>
             </form>
         </div>
