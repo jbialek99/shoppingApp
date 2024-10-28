@@ -7,6 +7,7 @@ import com.example.shoppingapp.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -20,20 +21,18 @@ public class OrderController {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
 
-    // Konstruktor
     public OrderController(OrderRepository orderRepository, UserRepository userRepository) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
     }
 
-    // Pobierz wszystkie zamówienia
     @GetMapping
     public ResponseEntity<List<Order>> getAllOrders() {
         List<Order> orders = orderRepository.findAll();
         return ResponseEntity.ok(orders);
     }
 
-    // Tworzenie zamówienia dla usera
+    @Transactional
     @PostMapping("/user/{userId}")
     public ResponseEntity<Order> createOrder(@PathVariable Long userId, @Valid @RequestBody Order order) {
         User user = userRepository.findById(userId)
@@ -52,23 +51,21 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedOrder);
     }
 
-    // Aktualizacja zamówienia
+    @Transactional
     @PutMapping("/{id}")
     public ResponseEntity<Order> updateOrder(@PathVariable Long id, @Valid @RequestBody Order orderDetails) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Zamówienie nie znalezione"));
 
-        // Aktualizacja szczegółów zamówienia
         order.setOrderDate(orderDetails.getOrderDate());
         order.setTotalPrice(orderDetails.getTotalPrice());
-        order.setStatus(orderDetails.getStatus()); // Dodano możliwość aktualizacji statusu zamówienia
+        order.setStatus(orderDetails.getStatus());
 
-        // Zapisanie i zwrócenie zaktualizowanego zamówienia
         final Order updatedOrder = orderRepository.save(order);
         return ResponseEntity.ok(updatedOrder);
     }
 
-    // Usuwanie zamówienia
+    @Transactional
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         if (!orderRepository.existsById(id)) {

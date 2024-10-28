@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<html lang="pl" xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,7 @@
         <p th:text="${message}"></p>
     </div>
 
-    <div th:if="${order.orderItems.size() > 0}" class="cart-content">
+    <div th:if="${order != null and order.orderItems != null and order.orderItems.size() > 0}" class="cart-content">
         <div th:each="item : ${order.orderItems}" class="product-item">
             <p class="product-name" th:text="${item.product.name}">Model</p>
             <p class="product-price" th:text="'Cena za sztukę: ' + ${item.product.price} + ' zł'">Cena za sztukę</p>
@@ -35,7 +35,7 @@
         </div>
     </div>
 
-    <div th:if="${order.orderItems.size() == 0}" class="empty-cart">
+    <div th:if="${order == null or order.orderItems == null or order.orderItems.size() == 0}" class="empty-cart">
         <p>Twój koszyk jest pusty.</p>
     </div>
 
