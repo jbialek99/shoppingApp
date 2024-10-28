@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -101,11 +102,20 @@ public class UserController {
     }
 
     // Formularz danych osobistych użytkownika
-// Wyświetlenie formularza "Moje dane"
+
     @GetMapping("/my-data")
-    public String showMyDataForm(Model model, @AuthenticationPrincipal Principal principal) {
-        if (principal != null) {
-            Optional<User> userOptional = userRepository.findByUsername(principal.getName());
+    public String showMyDataForm(Model model, Authentication authentication) {
+        // Sprawdzamy, czy użytkownik jest zalogowany i uzyskujemy jego dane
+        if (authentication != null && authentication.isAuthenticated()) {
+            String username;
+            if (authentication.getPrincipal() instanceof UserDetails) {
+                username = ((UserDetails) authentication.getPrincipal()).getUsername();
+            } else {
+                username = authentication.getPrincipal().toString();
+            }
+
+            // Wyszukujemy użytkownika po nazwie użytkownika
+            Optional<User> userOptional = userRepository.findByUsername(username);
             if (userOptional.isPresent()) {
                 model.addAttribute("user", userOptional.get()); // Dodajemy obiekt `user` do modelu
             } else {
