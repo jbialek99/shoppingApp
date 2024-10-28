@@ -162,10 +162,11 @@ body {
 
 /* Product image styling */
 .product-image {
-    max-width: 100%;
-    height: auto;
-    margin-bottom: 10px;
+    width: 100%;
+    height: 150px; /* Wysokość wymuszona na jednakową dla wszystkich */
+    object-fit: cover; /* Przycinanie obrazu, aby wypełnić wyznaczony obszar */
     border-radius: 5px;
+    margin-bottom: 10px;
 }
 
 /* Footer styles */
