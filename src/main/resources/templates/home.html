@@ -8,9 +8,7 @@
 </head>
 <body>
 
-<!-- Czarny pasek nawigacyjny -->
 <div class="header-bar">
-    <!-- Ikona koszyka jako pierwszy element -->
     <a href="/cart" class="cart-icon">
         <img src="/images/cart-icon.jpg" alt="Koszyk">
         <div th:if="${itemCount > 0}" class="cart-badge" th:text="${itemCount}">1</div>
@@ -19,11 +17,14 @@
     <!-- Linki dla niezalogowanych użytkowników -->
     <a href="/login" sec:authorize="isAnonymous()">Zaloguj się</a>
     <a href="/register" sec:authorize="isAnonymous()">Zarejestruj się</a>
+
+    <!-- Formularz wylogowania dla zalogowanych użytkowników -->
+    <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()" style="display: inline;">
+        <button type="submit">Wyloguj się</button>
+    </form>
 </div>
 
-<!-- Główna zawartość strony -->
 <div class="container">
-    <!-- Sekcja komunikatu -->
     <div th:if="${message}" class="alert-message alert-message-slide">
         <p th:text="${message}">Produkt został dodany do koszyka</p>
     </div>
@@ -39,14 +40,12 @@
                     <p th:text="'$' + ${product.price}">Cena</p>
 
                     <div th:if="${product.stock > 0}">
-                        <!-- Przycisk kup teraz, jeśli produkt jest dostępny -->
                         <form th:action="@{/cart/add/{productId}(productId=${product.id})}" method="post">
                             <button type="submit">Kup teraz</button>
                         </form>
                     </div>
 
                     <div th:if="${product.stock == 0}">
-                        <!-- Tekst informujący o braku dostępności, jeśli produkt jest niedostępny -->
                         <p class="unavailable-text">Produkt tymczasowo niedostępny</p>
                     </div>
                 </div>
