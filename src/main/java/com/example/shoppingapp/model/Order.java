@@ -7,27 +7,55 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "orders") // Ustawienie nazwy tabeli na "orders" zamiast "order"
+@Table(name = "orders")
 public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private BigDecimal totalPrice = BigDecimal.ZERO; // Domyślna wartość zerowa
+    private BigDecimal totalPrice = BigDecimal.ZERO;
 
-    private String status = "PENDING"; // Domyślny status zamówienia
+    private String status = "PENDING";
 
-    private LocalDateTime orderDate = LocalDateTime.now(); // Domyślna data zamówienia
+    private LocalDateTime orderDate = LocalDateTime.now();
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Set<OrderItem> orderItems = new HashSet<>(); // Inicjalizacja pustego zestawu
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<OrderItem> orderItems = new HashSet<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 
+    private String contactName;
+    private String contactPhone;
+    private String contactAddress;
+
     // Gettery i settery
+    public String getContactName() {
+        return contactName;
+    }
+
+    public void setContactName(String contactName) {
+        this.contactName = contactName;
+    }
+
+    public String getContactPhone() {
+        return contactPhone;
+    }
+
+    public void setContactPhone(String contactPhone) {
+        this.contactPhone = contactPhone;
+    }
+
+    public String getContactAddress() {
+        return contactAddress;
+    }
+
+    public void setContactAddress(String contactAddress) {
+        this.contactAddress = contactAddress;
+    }
+
     public Long getId() {
         return id;
     }
@@ -76,10 +104,9 @@ public class Order {
         this.user = user;
     }
 
-    // Metoda pomocnicza do dodawania pozycji do zamówienia
     public void addOrderItem(OrderItem item) {
         this.orderItems.add(item);
-        item.setOrder(this); // Ustawia relację dwukierunkową
-        this.totalPrice = this.totalPrice.add(item.getPrice()); // Aktualizacja całkowitej ceny
+        item.setOrder(this);
+        this.totalPrice = this.totalPrice.add(item.getPrice());
     }
 }

@@ -31,9 +31,6 @@ public class Product {
     @Column(length = 1000)
     private String imageUrl;
 
-    @Version
-    @Column(nullable = false)
-    private Integer version = 0; // Inicjalizacja na 0, aby zapobiec NullPointerException
 
     // Gettery i settery
     public Long getId() {
@@ -83,12 +80,5 @@ public class Product {
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
-
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
 }
+

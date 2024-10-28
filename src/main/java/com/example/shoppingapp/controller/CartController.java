@@ -136,65 +136,69 @@ public class CartController {
     @Transactional
     @PostMapping("/checkout/submit")
     public String submitCheckout(@ModelAttribute User user, @AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
-        System.out.println("Metoda submitCheckout została wywołana"); // Diagnostyczne logowanie
-
-        // Pobieramy zamówienie z sesji lub bazy
         Order order = getOrderFromSessionOrDatabase(principal, session);
 
-        // Sprawdzamy, czy zamówienie istnieje
+        // Sprawdzamy, czy zamówienie istnieje i czy koszyk nie jest pusty
         if (order == null || order.getOrderItems().isEmpty()) {
-            System.out.println("Brak produktów w zamówieniu.");
             redirectAttributes.addFlashAttribute("message", "Koszyk jest pusty, dodaj produkty przed złożeniem zamówienia.");
             return "redirect:/cart";
         }
 
-        // Aktualizacja danych użytkownika, jeśli jest zalogowany
+        // Logowanie diagnostyczne
+        System.out.println("Czy użytkownik jest zalogowany: " + (principal != null));
+
+        // Jeśli użytkownik jest zalogowany, pobieramy go z bazy danych i przypisujemy do zamówienia
         if (principal != null) {
-            System.out.println("Użytkownik zalogowany: " + principal.getName());
-            User existingUser = userRepository.findByUsername(principal.getName())
+            String username = principal.getName();
+
+            // Pobieramy obiekt User na podstawie nazwy użytkownika
+            User existingUser = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Użytkownik nie znaleziony"));
 
-            // Aktualizujemy dane użytkownika
-            existingUser.setFirstName(user.getFirstName());
-            existingUser.setLastName(user.getLastName());
-            existingUser.setAddress(user.getAddress());
-            existingUser.setPhone(user.getPhone());
-            userRepository.save(existingUser);
+            // Logowanie diagnostyczne
+            System.out.println("ID zalogowanego użytkownika: " + existingUser.getId());
+
+            // Przypisujemy user_id oraz dane kontaktowe zalogowanego użytkownika
+            order.setUser(existingUser);  // Przypisanie user_id do zamówienia
+            order.setContactName(existingUser.getFirstName() + " " + existingUser.getLastName());
+            order.setContactPhone(existingUser.getPhone());
+            order.setContactAddress(existingUser.getAddress());
         } else {
-            System.out.println("Użytkownik niezalogowany przesyła zamówienie.");
+            // Ustawiamy dane kontaktowe dla niezalogowanego użytkownika na podstawie formularza
+            order.setContactName(user.getFirstName() + " " + user.getLastName());
+            order.setContactPhone(user.getPhone());
+            order.setContactAddress(user.getAddress());
         }
 
-        // Zmniejszamy stan magazynowy dla produktów w zamówieniu
+        // Aktualizacja stanu magazynowego i zatwierdzenie zamówienia
         for (OrderItem item : order.getOrderItems()) {
             Product product = productRepository.findById(item.getProduct().getId())
                     .orElseThrow(() -> new RuntimeException("Produkt nie znaleziony"));
-
             if (product.getStock() < item.getQuantity()) {
-                System.out.println("Niedostateczna ilość produktu: " + product.getName());
                 redirectAttributes.addFlashAttribute("message", "Przepraszamy, ale produkt " + product.getName() + " jest dostępny w ograniczonej ilości.");
                 return "redirect:/cart";
             }
-
-            // Aktualizacja stanu magazynowego
             product.setStock(product.getStock() - item.getQuantity());
             productRepository.save(product);
         }
 
         // Ustawienie statusu zamówienia na "CONFIRMED" i zapis w bazie
         order.setStatus("CONFIRMED");
+
+        // Logowanie diagnostyczne przed zapisaniem zamówienia
+        System.out.println("Zapis zamówienia z ID użytkownika: " + (order.getUser() != null ? order.getUser().getId() : "Brak"));
+
+        // Zapisujemy zamówienie do bazy danych
         orderRepository.save(order);
 
         // Czyszczenie koszyka z sesji dla niezalogowanych
         if (principal == null) {
             session.removeAttribute("cart");
-        } else {
-            // Można też rozważyć ustawienie nowego pustego zamówienia w bazie, jeśli użytkownik jest zalogowany
         }
 
         redirectAttributes.addFlashAttribute("message", "Zamówienie zostało złożone i zostanie zrealizowane.");
         return "redirect:/home";
     }
-
 
 
     @Transactional
@@ -308,19 +312,4 @@ public class CartController {
                 .reduce(BigDecimal.ZERO, BigDecimal::add));
     }
 
-    private boolean finalizeOrder(Order order, RedirectAttributes redirectAttributes) {
-        for (OrderItem item : order.getOrderItems()) {
-            Product product = item.getProduct();
-            if (product.getStock() < item.getQuantity()) {
-                redirectAttributes.addFlashAttribute("message", "Przepraszamy, ale produkt " + product.getName() +
-                        " jest obecnie dostępny w ilości " + product.getStock() + " sztuk.");
-                return false;
-            }
-            product.setStock(product.getStock() - item.getQuantity());
-            productRepository.save(product);
-        }
-        order.setStatus("CONFIRMED");
-        orderRepository.save(order);
-        return true;
-    }
 }

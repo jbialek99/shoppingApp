@@ -8,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -45,12 +46,12 @@ public class User implements UserDetails {
     @Column(name = "phone")
     private String phone;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Order> orders;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<Order> orders = new HashSet<>();
 
     public User() {}
 
-    // Getters and Setters
+    // Gettery i settery
 
     public Long getId() {
         return id;
