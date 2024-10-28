@@ -1,4 +1,5 @@
 package com.example.shoppingapp.security;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,7 +15,8 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/", "/home", "/register", "/login", "/cart", "/cart/**", "/css/**", "/js/**", "/images/**", "/error").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/my-data").authenticated() // Tylko zalogowani użytkownicy mogą uzyskać dostęp do /my-data
+                        .anyRequest().authenticated() // Wymaga uwierzytelnienia dla pozostałych stron
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
@@ -29,7 +31,7 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"));
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**")); // Wyłączenie CSRF dla API
 
         return http.build();
     }

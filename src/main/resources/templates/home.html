@@ -18,6 +18,9 @@
     <a href="/login" sec:authorize="isAnonymous()">Zaloguj się</a>
     <a href="/register" sec:authorize="isAnonymous()">Zarejestruj się</a>
 
+    <!-- Link do "Moje dane" widoczny tylko dla zalogowanych użytkowników -->
+    <a href="/my-data" sec:authorize="isAuthenticated()">Moje dane</a>
+
     <!-- Formularz wylogowania dla zalogowanych użytkowników -->
     <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()" style="display: inline;">
         <button type="submit">Wyloguj się</button>

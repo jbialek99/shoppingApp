@@ -33,10 +33,21 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "last_name")
+    private String lastName;
+
+    @Column(name = "address")
+    private String address;
+
+    @Column(name = "phone")
+    private String phone;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Order> orders;
 
-    // Konstruktor bezargumentowy (wymagany przez JPA)
     public User() {}
 
     // Getters and Setters
@@ -73,6 +84,38 @@ public class User implements UserDetails {
         this.email = email;
     }
 
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
     public Set<Order> getOrders() {
         return orders;
     }
@@ -81,31 +124,28 @@ public class User implements UserDetails {
         this.orders = orders;
     }
 
-    // Implementacje metod z interfejsu UserDetails
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Możesz zwrócić listę ról (na przykład), na razie pusta implementacja
         return null;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return true; // Zawsze zwracaj true, chyba że dodasz obsługę wygasania kont
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true; // Zawsze zwracaj true, chyba że dodasz blokowanie kont
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true; // Zawsze zwracaj true, chyba że dodasz obsługę wygasania poświadczeń
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return true; // Zwróć true, chyba że chcesz dodawać logikę aktywacji konta
+        return true;
     }
 }
