@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl" xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,12 +16,29 @@
 
     <div th:if="${order != null and order.orderItems != null and order.orderItems.size() > 0}" class="cart-content">
         <div th:each="item : ${order.orderItems}" class="product-item">
-            <p class="product-name" th:text="${item.product.name}">Model</p>
-            <p class="product-price" th:text="'Cena za sztukę: ' + ${item.product.price} + ' zł'">Cena za sztukę</p>
-            <p class="product-quantity" th:text="'Ilość: ' + ${item.quantity}">Ilość</p>
-            <p class="item-total-price" th:text="'Łączna cena: ' + ${item.totalItemPrice} + ' zł'">Łączna cena</p>
+            <div class="product-details">
+                <p class="product-name" th:text="${item.product.name}">Model</p>
+                <p class="product-price" th:text="'Cena za sztukę: ' + ${item.product.price} + ' zł'">Cena za sztukę</p>
+                <p class="product-quantity" th:text="'Ilość: ' + ${item.quantity}">Ilość</p>
+                <p class="item-total-price" th:text="'Łączna cena: ' + ${item.totalItemPrice} + ' zł'">Łączna cena</p>
+            </div>
+
+            <div class="product-actions">
+                <form th:action="@{/cart/decreaseQuantity/{productId}(productId=${item.product.id})}" method="post" class="action-form-inline">
+                    <button type="submit" class="decrease-btn">- Zmniejsz ilość</button>
+                </form>
+
+                <form th:action="@{/cart/increaseQuantity/{productId}(productId=${item.product.id})}" method="post" class="action-form-inline">
+                    <button type="submit" class="increase-btn">+ Dodaj</button>
+                </form>
+
+                <form th:action="@{/cart/removeItem/{productId}(productId=${item.product.id})}" method="post" class="action-form-inline">
+                    <button type="submit" class="remove-btn">Usuń produkt</button>
+                </form>
+            </div>
             <hr>
         </div>
+
         <p class="total-price" th:text="'Łączna cena całkowita: ' + ${order.totalPrice} + ' zł'">Łączna cena całkowita</p>
 
         <div class="cart-actions">
