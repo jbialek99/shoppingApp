@@ -14,7 +14,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/", "/home", "/register", "/login", "/cart", "/cart/**", "/checkout", "/checkout/submit", "/css/**", "/js/**", "/images/**", "/error").permitAll()
+                        .requestMatchers("/", "/home", "/register", "/login", "/cart", "/cart/**","/contact" , "/checkout", "/checkout/submit", "/css/**", "/js/**", "/images/**", "/error").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -30,8 +30,7 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/checkout/submit", "/cart/**", "/api/**")); // Wyłączenie CSRF dla API, checkout/submit, cart
-
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"));
         return http.build();
     }
 

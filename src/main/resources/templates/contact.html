@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Kontakt - shoppingApp</title>
+    <link rel="stylesheet" href="/css/contact.css">
+</head>
+<body>
+<div class="container">
+    <h2 class="contact-title">Skontaktuj się z nami</h2>
+
+    <!-- Sekcja z danymi kontaktowymi -->
+    <div class="contact-info">
+        <h3>shoppingApp</h3>
+        <p>Adres: ul. Wymyślona 123, 00-001 Warszawa</p>
+        <p>Telefon: +48 123 456 789</p>
+        <p>Email: kontakt@shoppingapp.pl</p>
+        <p>Godziny otwarcia: Pon - Pt: 9:00 - 17:00</p>
+    </div>
+
+    <!-- Mapka Google osadzona w iframe -->
+    <div class="map-container">
+        <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2436.7040724742613!2d21.012228315583616!3d52.22967517975792!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x471ecc669ed5a2d9%3A0x4b79bda526e830f!2sWarsaw%2C%20Poland!5e0!3m2!1sen!2spl!4v1698590594867!5m2!1sen!2spl"
+                width="100%"
+                height="450"
+                style="border:0;"
+                allowfullscreen=""
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </div>
+
+    <!-- Przycisk powrotu do strony głównej -->
+    <div class="home-button">
+        <button type="button" onclick="window.location.href='/home'" class="back-home-btn">Powrót na stronę główną</button>
+    </div>
+</div>
+</body>
+</html>

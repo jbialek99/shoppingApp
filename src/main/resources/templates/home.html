@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html lang="pl" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<html lang="pl" xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page</title>
+    <title>Home Page - shoppingApp</title>
     <link rel="stylesheet" href="/css/home.css">
 </head>
 <body>
 
 <div class="header-bar">
+    <!-- Koszyk z ikoną -->
     <a href="/cart" class="cart-icon">
         <img src="/images/cart-icon.jpg" alt="Koszyk">
         <div th:if="${itemCount > 0}" class="cart-badge" th:text="${itemCount}">1</div>
@@ -18,21 +19,20 @@
     <a href="/login" sec:authorize="isAnonymous()">Zaloguj się</a>
     <a href="/register" sec:authorize="isAnonymous()">Zarejestruj się</a>
 
-    <!-- Link do "Moje dane" widoczny tylko dla zalogowanych użytkowników -->
+    <!-- Link "Moje dane" i wylogowanie tylko dla zalogowanych użytkowników -->
     <a href="/my-data" sec:authorize="isAuthenticated()">Moje dane</a>
-
-    <!-- Formularz wylogowania dla zalogowanych użytkowników -->
     <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()" style="display: inline;">
         <button type="submit">Wyloguj się</button>
     </form>
 </div>
 
 <div class="container">
+    <!-- Wiadomość o dodaniu produktu do koszyka -->
     <div th:if="${message}" class="alert-message alert-message-slide">
         <p th:text="${message}">Produkt został dodany do koszyka</p>
     </div>
 
-    <!-- Produkty -->
+    <!-- Sekcja z produktami -->
     <section class="product-section">
         <div class="product-list">
             <th:block th:each="product : ${products}">
@@ -56,9 +56,10 @@
         </div>
     </section>
 
-    <!-- Stopka -->
+    <!-- Stopka z linkiem do strony kontaktowej -->
     <footer>
-        <p>&copy; 2024 projectShop Wszystkie prawa zastrzeżone.</p>
+        <p>&copy; 2024 shoppingApp Wszystkie prawa zastrzeżone.</p>
+        <p><a href="/contact">Kontakt</a></p> <!-- Dodano link do strony kontaktowej -->
     </footer>
 </div>
 </body>
