@@ -121,9 +121,6 @@ public class CartController {
             Optional<User> userOptional = userRepository.findByUsername(username);
             user = userOptional.orElse(new User());
 
-            // Diagnostyczne logowanie danych użytkownika
-            System.out.println("Zalogowany użytkownik: " + username);
-            System.out.println("User details: " + user.getFirstName() + ", " + user.getLastName() + ", " + user.getAddress() + ", " + user.getPhone());
         } else {
             // Użytkownik nie jest zalogowany
             user = new User();
@@ -132,6 +129,7 @@ public class CartController {
         model.addAttribute("user", user);
         return "checkout";
     }
+
     // Obsługa przesyłania formularza checkout
     @Transactional
     @PostMapping("/checkout/submit")
@@ -144,9 +142,6 @@ public class CartController {
             return "redirect:/cart";
         }
 
-        // Logowanie diagnostyczne
-        System.out.println("Czy użytkownik jest zalogowany: " + (principal != null));
-
         // Jeśli użytkownik jest zalogowany, pobieramy go z bazy danych i przypisujemy do zamówienia
         if (principal != null) {
             String username = principal.getName();
@@ -155,8 +150,6 @@ public class CartController {
             User existingUser = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Użytkownik nie znaleziony"));
 
-            // Logowanie diagnostyczne
-            System.out.println("ID zalogowanego użytkownika: " + existingUser.getId());
 
             // Przypisujemy user_id oraz dane kontaktowe zalogowanego użytkownika
             order.setUser(existingUser);  // Przypisanie user_id do zamówienia
@@ -185,8 +178,6 @@ public class CartController {
         // Ustawienie statusu zamówienia na "CONFIRMED" i zapis w bazie
         order.setStatus("CONFIRMED");
 
-        // Logowanie diagnostyczne przed zapisaniem zamówienia
-        System.out.println("Zapis zamówienia z ID użytkownika: " + (order.getUser() != null ? order.getUser().getId() : "Brak"));
 
         // Zapisujemy zamówienie do bazy danych
         orderRepository.save(order);
