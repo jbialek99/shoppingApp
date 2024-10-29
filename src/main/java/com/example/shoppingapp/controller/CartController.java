@@ -10,7 +10,6 @@ import com.example.shoppingapp.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,16 +38,44 @@ public class CartController {
 
     // Endpoint do wyświetlania koszyka
     @GetMapping
-    public String viewCart(Model model, HttpSession session, @AuthenticationPrincipal Principal principal) {
-        Order order = getOrderFromSessionOrDatabase(principal, session);
+    public String viewCart(Model model, HttpSession session, @AuthenticationPrincipal UserDetails userDetails) {
+        Order order = getOrderFromSessionOrDatabase(userDetails, session);
         model.addAttribute("order", order);
         return "cart";
     }
 
+    private Order getOrderFromSessionOrDatabase(UserDetails userDetails, HttpSession session) {
+        if (userDetails != null) {
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("Użytkownik nie znaleziony"));
+
+            // Sprawdzenie, czy zamówienie istnieje w statusie PENDING
+            return orderRepository.findByUserAndStatus(user, "PENDING").orElseGet(() -> {
+                Order newOrder = new Order();
+                newOrder.setUser(user); // Przypisanie użytkownika
+                newOrder.setStatus("PENDING");
+                newOrder.setTotalPrice(BigDecimal.ZERO);
+                newOrder.setOrderItems(new HashSet<>());
+                return orderRepository.save(newOrder); // Zapisz nowe zamówienie
+            });
+        } else {
+            // Obsługa niezalogowanego użytkownika
+            Order order = (Order) session.getAttribute("cart");
+            if (order == null) {
+                order = new Order();
+                order.setStatus("PENDING");
+                order.setTotalPrice(BigDecimal.ZERO);
+                order.setOrderItems(new HashSet<>());
+                session.setAttribute("cart", order);
+            }
+            return order;
+        }
+    }
+
     @Transactional
     @PostMapping("/add/{productId}")
-    public String addToCart(@PathVariable Long productId, @AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
-        Order order = getOrderFromSessionOrDatabase(principal, session);
+    public String addToCart(@PathVariable Long productId, @AuthenticationPrincipal UserDetails userDetails, HttpSession session, RedirectAttributes redirectAttributes) {
+        Order order = getOrderFromSessionOrDatabase(userDetails, session);
         Product product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("Produkt nie znaleziony"));
 
         if (product.getStock() <= 0) {
@@ -74,8 +101,13 @@ public class CartController {
             order.getOrderItems().add(orderItem);
         }
 
+        // Aktualizujemy całkową cenę zamówienia
         updateTotalPrice(order);
-        saveOrder(principal, session, order);
+        saveOrder(userDetails, session, order);
+
+        // Debugging
+        System.out.println("Dodano produkt do koszyka: " + product.getName());
+        System.out.println("Zawartość koszyka: " + order.getOrderItems());
 
         redirectAttributes.addFlashAttribute("message", "Produkt został dodany do koszyka!");
         return "redirect:/home";
@@ -83,8 +115,12 @@ public class CartController {
 
     @Transactional
     @PostMapping("/placeOrder")
-    public String placeOrder(@AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
-        Order order = getOrderFromSessionOrDatabase(principal, session);
+    public String placeOrder(@AuthenticationPrincipal UserDetails userDetails, HttpSession session, RedirectAttributes redirectAttributes) {
+        Order order = getOrderFromSessionOrDatabase(userDetails, session);
+
+        // Debugowanie
+        System.out.println("Zamówienie dla użytkownika: " + (userDetails != null ? userDetails.getUsername() : "niezalogowany"));
+        System.out.println("Zawartość zamówienia: " + order.getOrderItems());
 
         // Sprawdzamy, czy zamówienie ma produkty
         if (order.getOrderItems().isEmpty()) {
@@ -110,54 +146,54 @@ public class CartController {
 
     // Wyświetlenie formularza checkout z automatycznym wypełnieniem danych użytkownika
     @GetMapping("/checkout")
-    public String checkout(Model model) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user;
+    public String checkout(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        User user = null;
 
-        if (authentication != null && authentication.isAuthenticated()
-                && authentication.getPrincipal() instanceof UserDetails) {
-
-            String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-            Optional<User> userOptional = userRepository.findByUsername(username);
-            user = userOptional.orElse(new User());
-
-        } else {
-            // Użytkownik nie jest zalogowany
-            user = new User();
+        if (userDetails != null) {
+            user = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
         }
 
-        model.addAttribute("user", user);
+        model.addAttribute("user", user != null ? user : new User());
         return "checkout";
     }
 
     // Obsługa przesyłania formularza checkout
     @Transactional
     @PostMapping("/checkout/submit")
-    public String submitCheckout(@ModelAttribute User user, @AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
-        Order order = getOrderFromSessionOrDatabase(principal, session);
+    public String submitCheckout(@ModelAttribute User user, @AuthenticationPrincipal UserDetails userDetails, HttpSession session, RedirectAttributes redirectAttributes) {
+        String username = null;
 
-        // Sprawdzamy, czy zamówienie istnieje i czy koszyk nie jest pusty
+        // Zbieranie nazwy użytkownika, jeśli użytkownik jest zalogowany
+        if (userDetails != null) {
+            username = userDetails.getUsername();
+            System.out.println("Zalogowany użytkownik: " + username); // Logowanie nazwy użytkownika
+        }
+
+        // Użyj metody, która pobiera zamówienie na podstawie użytkownika
+        Order order = getOrderFromSessionOrDatabaseByUsername(username, session);
+
+        // Debugowanie
+        System.out.println("Zamówienie: " + order);
+        System.out.println("Zawartość zamówienia: " + order.getOrderItems());
+
+        // Sprawdzanie, czy zamówienie istnieje i czy koszyk nie jest pusty
         if (order == null || order.getOrderItems().isEmpty()) {
             redirectAttributes.addFlashAttribute("message", "Koszyk jest pusty, dodaj produkty przed złożeniem zamówienia.");
             return "redirect:/cart";
         }
 
-        // Jeśli użytkownik jest zalogowany, pobieramy go z bazy danych i przypisujemy do zamówienia
-        if (principal != null) {
-            String username = principal.getName();
-
-            // Pobieramy obiekt User na podstawie nazwy użytkownika
+        // Przypisanie danych kontaktowych
+        if (username != null) {
+            // Dla zalogowanego użytkownika
             User existingUser = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Użytkownik nie znaleziony"));
 
-
-            // Przypisujemy user_id oraz dane kontaktowe zalogowanego użytkownika
-            order.setUser(existingUser);  // Przypisanie user_id do zamówienia
+            order.setUser(existingUser);
             order.setContactName(existingUser.getFirstName() + " " + existingUser.getLastName());
             order.setContactPhone(existingUser.getPhone());
             order.setContactAddress(existingUser.getAddress());
         } else {
-            // Ustawiamy dane kontaktowe dla niezalogowanego użytkownika na podstawie formularza
+            // Dla niezalogowanego użytkownika, użyj danych z formularza
             order.setContactName(user.getFirstName() + " " + user.getLastName());
             order.setContactPhone(user.getPhone());
             order.setContactAddress(user.getAddress());
@@ -177,13 +213,10 @@ public class CartController {
 
         // Ustawienie statusu zamówienia na "CONFIRMED" i zapis w bazie
         order.setStatus("CONFIRMED");
-
-
-        // Zapisujemy zamówienie do bazy danych
         orderRepository.save(order);
 
         // Czyszczenie koszyka z sesji dla niezalogowanych
-        if (principal == null) {
+        if (username == null) {
             session.removeAttribute("cart");
         }
 
@@ -194,11 +227,11 @@ public class CartController {
 
     @Transactional
     @PostMapping("/cancel")
-    public String cancelOrder(@AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
-        Order order = getOrderFromSessionOrDatabase(principal, session);
+    public String cancelOrder(@AuthenticationPrincipal UserDetails userDetails, HttpSession session, RedirectAttributes redirectAttributes) {
+        Order order = getOrderFromSessionOrDatabase(userDetails, session);
 
         if (order != null) {
-            if (principal != null) {
+            if (userDetails != null) {
                 orderRepository.delete(order);
             } else {
                 session.removeAttribute("cart");
@@ -212,8 +245,8 @@ public class CartController {
     // Obsługa zmniejszania ilości produktu
     @Transactional
     @PostMapping("/decreaseQuantity/{productId}")
-    public String decreaseQuantity(@PathVariable Long productId, @AuthenticationPrincipal Principal principal, HttpSession session) {
-        Order order = getOrderFromSessionOrDatabase(principal, session);
+    public String decreaseQuantity(@PathVariable Long productId, @AuthenticationPrincipal UserDetails userDetails, HttpSession session) {
+        Order order = getOrderFromSessionOrDatabase(userDetails, session);
 
         order.getOrderItems().stream()
                 .filter(item -> item.getProduct().getId().equals(productId))
@@ -228,15 +261,15 @@ public class CartController {
                     updateTotalPrice(order);
                 });
 
-        saveOrder(principal, session, order);
+        saveOrder(userDetails, session, order);
         return "redirect:/cart";
     }
 
     // Obsługa zwiększania ilości produktu
     @Transactional
     @PostMapping("/increaseQuantity/{productId}")
-    public String increaseQuantity(@PathVariable Long productId, @AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
-        Order order = getOrderFromSessionOrDatabase(principal, session);
+    public String increaseQuantity(@PathVariable Long productId, @AuthenticationPrincipal UserDetails userDetails, HttpSession session, RedirectAttributes redirectAttributes) {
+        Order order = getOrderFromSessionOrDatabase(userDetails, session);
 
         order.getOrderItems().stream()
                 .filter(item -> item.getProduct().getId().equals(productId))
@@ -247,7 +280,7 @@ public class CartController {
                 });
 
         updateTotalPrice(order);
-        saveOrder(principal, session, order);
+        saveOrder(userDetails, session, order);
 
         redirectAttributes.addFlashAttribute("message", "Produkt został dodany.");
         return "redirect:/cart";
@@ -255,42 +288,18 @@ public class CartController {
 
     @Transactional
     @PostMapping("/removeItem/{productId}")
-    public String removeItem(@PathVariable Long productId, @AuthenticationPrincipal Principal principal, HttpSession session) {
-        Order order = getOrderFromSessionOrDatabase(principal, session);
+    public String removeItem(@PathVariable Long productId, @AuthenticationPrincipal UserDetails userDetails, HttpSession session) {
+        Order order = getOrderFromSessionOrDatabase(userDetails, session);
 
         order.getOrderItems().removeIf(item -> item.getProduct().getId().equals(productId));
         updateTotalPrice(order);
 
-        saveOrder(principal, session, order);
+        saveOrder(userDetails, session, order);
         return "redirect:/cart";
     }
 
-    private Order getOrderFromSessionOrDatabase(Principal principal, HttpSession session) {
-        if (principal != null) {
-            User user = userRepository.findByUsername(principal.getName()).orElseThrow(() -> new RuntimeException("Użytkownik nie znaleziony"));
-            return orderRepository.findByUserAndStatus(user, "PENDING").orElseGet(() -> {
-                Order newOrder = new Order();
-                newOrder.setUser(user);
-                newOrder.setStatus("PENDING");
-                newOrder.setTotalPrice(BigDecimal.ZERO);
-                newOrder.setOrderItems(new HashSet<>());
-                return orderRepository.save(newOrder);
-            });
-        } else {
-            Order order = (Order) session.getAttribute("cart");
-            if (order == null) {
-                order = new Order();
-                order.setStatus("PENDING");
-                order.setTotalPrice(BigDecimal.ZERO);
-                order.setOrderItems(new HashSet<>());
-                session.setAttribute("cart", order);
-            }
-            return order;
-        }
-    }
-
-    private void saveOrder(Principal principal, HttpSession session, Order order) {
-        if (principal != null) {
+    private void saveOrder(UserDetails userDetails, HttpSession session, Order order) {
+        if (userDetails != null) {
             orderRepository.save(order);
         } else {
             session.setAttribute("cart", order);
@@ -303,4 +312,37 @@ public class CartController {
                 .reduce(BigDecimal.ZERO, BigDecimal::add));
     }
 
+    private Order getOrderFromSession(HttpSession session) {
+        Order order = (Order) session.getAttribute("cart");
+        if (order == null) {
+            order = new Order();
+            order.setStatus("PENDING");
+            order.setTotalPrice(BigDecimal.ZERO);
+            order.setOrderItems(new HashSet<>());
+            session.setAttribute("cart", order);
+        }
+        return order;
+    }
+    private Order getOrderFromSessionOrDatabaseByUsername(String username, HttpSession session) {
+        if (username != null) {
+            // Dla zalogowanego użytkownika, pobierz zamówienie z bazy danych
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Użytkownik nie znaleziony"));
+
+            // Sprawdzenie, czy zamówienie istnieje w statusie PENDING
+            return orderRepository.findByUserAndStatus(user, "PENDING").orElseGet(() -> {
+                Order newOrder = new Order();
+                newOrder.setUser(user); // Przypisanie użytkownika
+                newOrder.setStatus("PENDING");
+                newOrder.setTotalPrice(BigDecimal.ZERO);
+                newOrder.setOrderItems(new HashSet<>());
+                return orderRepository.save(newOrder); // Zapisz nowe zamówienie
+            });
+        } else {
+            // Dla niezalogowanego użytkownika, pobierz zamówienie z sesji
+            return getOrderFromSession(session);
+        }
+    }
+
 }
+
