@@ -18,9 +18,9 @@
         <div th:each="item : ${order.orderItems}" class="product-item">
             <div class="product-details">
                 <p class="product-name" th:text="${item.product.name}">Model</p>
-                <p class="product-price" th:text="'Cena za sztukę: ' + ${item.product.price} + ' zł'">Cena za sztukę</p>
+                <p class="product-price" th:text="'Cena za sztukę: ' + ${item.product.price} + ' $'">Cena za sztukę</p>
                 <p class="product-quantity" th:text="'Ilość: ' + ${item.quantity}">Ilość</p>
-                <p class="item-total-price" th:text="'Łączna cena: ' + ${item.totalItemPrice} + ' zł'">Łączna cena</p>
+                <p class="item-total-price" th:text="'Łączna cena: ' + ${item.totalItemPrice} + ' $'">Łączna cena</p>
             </div>
 
             <div class="product-actions">
@@ -45,7 +45,7 @@
             <hr>
         </div>
 
-        <p class="total-price" th:text="'Łączna cena całkowita: ' + ${order.totalPrice} + ' zł'">Łączna cena
+        <p class="total-price" th:text="'Łączna cena całkowita: ' + ${order.totalPrice} + ' $'">Łączna cena
             całkowita</p>
 
         <div class="cart-actions">
