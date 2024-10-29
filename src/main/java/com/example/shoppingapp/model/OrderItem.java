@@ -93,7 +93,7 @@ public class OrderItem {
 
     // Metoda pomocnicza do aktualizacji totalItemPrice
     private void updateTotalItemPrice() {
-        if (this.price != null && this.quantity > 0) {
+        if (this.price != null) {
             this.totalItemPrice = this.price.multiply(BigDecimal.valueOf(this.quantity));
         } else {
             this.totalItemPrice = BigDecimal.ZERO;

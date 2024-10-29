@@ -221,7 +221,7 @@ public class CartController {
     // Obsługa zmniejszania ilości produktu
     @Transactional
     @PostMapping("/decreaseQuantity/{productId}")
-    public String decreaseQuantity(@PathVariable Long productId, @AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
+    public String decreaseQuantity(@PathVariable Long productId, @AuthenticationPrincipal Principal principal, HttpSession session) {
         Order order = getOrderFromSessionOrDatabase(principal, session);
 
         order.getOrderItems().stream()
@@ -264,7 +264,7 @@ public class CartController {
 
     @Transactional
     @PostMapping("/removeItem/{productId}")
-    public String removeItem(@PathVariable Long productId, @AuthenticationPrincipal Principal principal, HttpSession session, RedirectAttributes redirectAttributes) {
+    public String removeItem(@PathVariable Long productId, @AuthenticationPrincipal Principal principal, HttpSession session) {
         Order order = getOrderFromSessionOrDatabase(principal, session);
 
         order.getOrderItems().removeIf(item -> item.getProduct().getId().equals(productId));

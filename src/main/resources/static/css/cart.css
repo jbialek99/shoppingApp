@@ -1,23 +1,20 @@
-/* General body and container styles */
 body {
-    background-color: #121212; /* Ciemne tło dla całej strony */
+    background-color: #121212;
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    color: #e0e0e0; /* Jasny tekst */
+    color: #e0e0e0;
 }
 
-/* Container styling */
 .container {
     max-width: 700px;
     margin: 40px auto;
     padding: 25px;
-    background-color: #1e1e1e; /* Ciemne tło dla kontenera */
+    background-color: #1e1e1e;
     border-radius: 10px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
 }
 
-/* Nagłówek strony */
 .cart-title {
     text-align: center;
     color: #e0e0e0;
@@ -25,7 +22,6 @@ body {
     margin-bottom: 25px;
 }
 
-/* Sekcja komunikatu */
 .message {
     color: #ffffff;
     padding: 10px;
@@ -36,7 +32,6 @@ body {
     border-radius: 5px;
 }
 
-/* Styl dla wyświetlania produktów */
 .product-item {
     padding: 15px;
     border-bottom: 1px solid #444;
@@ -61,7 +56,6 @@ body {
     margin: 5px 0;
 }
 
-/* Styl dla przycisków zmniejszania ilości i usuwania pozycji */
 .product-actions {
     display: flex;
     justify-content: flex-start;
@@ -80,18 +74,17 @@ body {
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
-    color: #e0e0e0; /* Jasny tekst */
-    background-color: #333; /* Ciemne, neutralne tło */
+    color: #e0e0e0;
+    background-color: #333;
     transition: background-color 0.3s;
 }
 
 .decrease-btn:hover,
 .increase-btn:hover,
 .remove-btn:hover {
-    background-color: #555; /* Lekko jaśniejsze tło przy najechaniu */
+    background-color: #555;
 }
 
-/* Łączna cena koszyka */
 .total-price {
     text-align: right;
     font-size: 1.3em;
@@ -102,7 +95,6 @@ body {
     border-top: 1px solid #444;
 }
 
-/* Styl przycisków akcji */
 .cart-actions {
     display: flex;
     justify-content: space-between;
@@ -110,7 +102,6 @@ body {
     margin-top: 25px;
 }
 
-/* Przyciski Złóż zamówienie i Anuluj zamówienie */
 .confirm-btn,
 .cancel-btn {
     flex: 1;
@@ -121,17 +112,16 @@ body {
     cursor: pointer;
     font-weight: bold;
     color: #e0e0e0;
-    background-color: #333; /* Neutralne, ciemne tło */
+    background-color: #333;
     transition: background-color 0.3s, transform 0.2s;
 }
 
 .confirm-btn:hover,
 .cancel-btn:hover {
-    background-color: #555; /* Jaśniejsze tło przy najechaniu */
+    background-color: #555;
     transform: scale(1.05);
 }
 
-/* Styl pustego koszyka */
 .empty-cart p {
     text-align: center;
     font-size: 1.3em;
@@ -142,7 +132,6 @@ body {
     background-color: #2a2a2a;
 }
 
-/* Styl przycisku powrotu na stronę główną */
 .back-home {
     text-align: center;
     margin-top: 25px;

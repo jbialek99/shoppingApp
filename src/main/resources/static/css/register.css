@@ -1,11 +1,9 @@
-/* Ogólny reset stylów */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* Ustawienia dla body */
 body {
     font-family: 'Roboto', sans-serif;
     background: linear-gradient(135deg, #2980b9, #2c3e50);
@@ -15,14 +13,13 @@ body {
     height: 100vh;
 }
 
-/* Kontener formularza rejestracji */
 .login-container {
-    background-color: #ffffff; /* Białe tło */
+    background-color: #ffffff;
     padding: 40px 50px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Cień dla wyróżnienia */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     border-radius: 12px;
     width: 400px;
-    max-width: 90%; /* Responsywność */
+    max-width: 90%;
     text-align: center;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -32,7 +29,6 @@ body {
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
 }
 
-/* Nagłówek */
 h2 {
     margin-bottom: 20px;
     font-size: 28px;
@@ -40,14 +36,12 @@ h2 {
     font-weight: 500;
 }
 
-/* Stylizacja formularza */
 form {
     display: flex;
     flex-direction: column;
     width: 100%;
 }
 
-/* Etykiety formularza */
 label {
     text-align: left;
     margin-bottom: 8px;
@@ -55,7 +49,6 @@ label {
     color: #34495e;
 }
 
-/* Pola input */
 input[type="text"],
 input[type="password"],
 input[type="email"] {
@@ -75,7 +68,6 @@ input[type="email"]:focus {
     outline: none;
 }
 
-/* Przycisk Zarejestruj */
 button {
     padding: 12px;
     background-color: #2980b9;
@@ -86,28 +78,27 @@ button {
     font-size: 16px;
     font-weight: bold;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    margin-bottom: 10px; /* Dodanie odstępu poniżej przycisku */
+    margin-bottom: 10px;
 }
 
 button:hover {
     background-color: #1e6f9f;
     box-shadow: 0 5px 15px rgba(41, 128, 185, 0.3);
 }
+
 .hint {
     font-size: 12px;
     color: #7f8c8d;
 }
 
-/* Przycisk Strona Główna */
 button.home-button {
-    background-color: #27ae60; /* Zielony kolor */
+    background-color: #27ae60;
 }
 
 button.home-button:hover {
-    background-color: #219653; /* Ciemniejszy zielony po najechaniu */
+    background-color: #219653;
 }
 
-/* Sekcja linku do logowania */
 p {
     margin-top: 20px;
     font-size: 14px;
@@ -122,7 +113,6 @@ p a:hover {
     text-decoration: underline;
 }
 
-/* Komunikaty o błędach */
 .error-message {
     background-color: #e74c3c;
     color: #fff;
@@ -134,15 +124,24 @@ p a:hover {
     transition: opacity 0.3s ease;
 }
 
-/* Animacja dla komunikatu o błędzie */
 .error-message {
     animation: shake 0.4s ease-in-out;
 }
 
 @keyframes shake {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    50% { transform: translateX(5px); }
-    75% { transform: translateX(-5px); }
-    100% { transform: translateX(0); }
+    0% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    50% {
+        transform: translateX(5px);
+    }
+    75% {
+        transform: translateX(-5px);
+    }
+    100% {
+        transform: translateX(0);
+    }
 }

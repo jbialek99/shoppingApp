@@ -103,10 +103,4 @@ public class Order {
     public void setUser(User user) {
         this.user = user;
     }
-
-    public void addOrderItem(OrderItem item) {
-        this.orderItems.add(item);
-        item.setOrder(this);
-        this.totalPrice = this.totalPrice.add(item.getPrice());
-    }
 }

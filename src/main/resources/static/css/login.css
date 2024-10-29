@@ -1,4 +1,3 @@
-/* Ogólny reset stylów */
 * {
     margin: 0;
     padding: 0;
@@ -84,11 +83,11 @@ button:hover {
 }
 
 button.home-button {
-    background-color: #27ae60; /* Zielony kolor */
+    background-color: #27ae60;
 }
 
 button.home-button:hover {
-    background-color: #219653; /* Ciemniejszy zielony po najechaniu */
+    background-color: #219653;
 }
 
 p {
@@ -116,15 +115,24 @@ p a:hover {
     font-weight: 500;
 }
 
-/* Animacja pola logowania przy błędzie */
 .error-message {
     animation: shake 0.4s ease-in-out;
 }
 
 @keyframes shake {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    50% { transform: translateX(5px); }
-    75% { transform: translateX(-5px); }
-    100% { transform: translateX(0); }
+    0% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    50% {
+        transform: translateX(5px);
+    }
+    75% {
+        transform: translateX(-5px);
+    }
+    100% {
+        transform: translateX(0);
+    }
 }

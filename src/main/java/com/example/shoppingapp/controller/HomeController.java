@@ -3,12 +3,10 @@ package com.example.shoppingapp.controller;
 import com.example.shoppingapp.model.Order;
 import com.example.shoppingapp.repository.ProductRepository;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.security.Principal;
 import java.util.HashSet;
 
 @Controller
@@ -21,7 +19,7 @@ public class HomeController {
     }
 
     @GetMapping("/home")
-    public String home(Model model, @AuthenticationPrincipal Principal principal, HttpSession session) {
+    public String home(Model model, HttpSession session) {
         model.addAttribute("products", productRepository.findAll());
 
         // Pobierz koszyk z sesji lub utwórz nowy, jeśli jeszcze nie istnieje
