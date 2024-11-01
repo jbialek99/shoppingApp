@@ -1,8 +1,11 @@
 package com.example.shoppingapp.controller;
 
 import com.example.shoppingapp.model.User;
+import com.example.shoppingapp.model.ValidationGroups;
 import com.example.shoppingapp.repository.UserRepository;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -125,26 +129,56 @@ public class UserController {
     }
 
     // Obsługa aktualizacji danych użytkownika
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
+
     @PostMapping("/my-data")
-    public String updateMyData(User user, BindingResult result, Principal principal, RedirectAttributes redirectAttributes) {
+    public String updateMyData(@Validated(ValidationGroups.Update.class) User user,
+                               BindingResult result,
+                               Principal principal,
+                               Model model,
+                               RedirectAttributes redirectAttributes) {
+        logger.info("Entered updateMyData method");
+
+        // Sprawdzenie błędów walidacji
         if (result.hasErrors()) {
-            return "my-data";
+            logger.error("Validation errors found: {}", result.getAllErrors());
+            model.addAttribute("user", user); // Przekazanie użytkownika z błędami do modelu
+            return "my-data"; // Powrót do widoku my-data z błędami walidacji
         }
 
+        // Upewnienie się, że użytkownik jest zalogowany
         if (principal != null) {
-            Optional<User> existingUserOptional = userRepository.findByUsername(principal.getName());
+            String username = principal.getName();
+            Optional<User> existingUserOptional = userRepository.findByUsername(username);
+
             if (existingUserOptional.isPresent()) {
                 User existingUser = existingUserOptional.get();
+                logger.info("Found existing user: {}", existingUser.getUsername());
+
+                // Aktualizacja pól użytkownika
                 existingUser.setFirstName(user.getFirstName());
                 existingUser.setLastName(user.getLastName());
                 existingUser.setAddress(user.getAddress());
                 existingUser.setPhone(user.getPhone());
+
+                // Zapis do bazy danych
                 userRepository.save(existingUser);
+                logger.info("User data updated successfully for: {}", existingUser.getUsername());
+
+                // Ustawienie komunikatu o sukcesie
+                redirectAttributes.addFlashAttribute("message", "Pomyślnie ustawiono Twoje dane.");
+                return "redirect:/home"; // Przekierowanie na `home`
+            } else {
+                logger.error("User not found in the database: {}", username);
             }
+        } else {
+            logger.error("Principal is null, user is not authenticated");
         }
 
-        redirectAttributes.addFlashAttribute("message", "Pomyślnie ustawiono Twoje dane.");
-        return "redirect:/home";
+        // W razie problemów zwróć formularz z komunikatem o błędzie
+        model.addAttribute("error", "Wystąpił problem z aktualizacją danych użytkownika.");
+        return "my-data";
     }
 
     // Wyświetlenie formularza checkout z automatycznym wypełnieniem danych

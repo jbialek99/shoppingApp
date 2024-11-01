@@ -3,6 +3,7 @@ package com.example.shoppingapp.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,37 +20,40 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Username is mandatory")
-    @Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters")
+    @NotBlank(message = "Username is mandatory", groups = ValidationGroups.Registration.class)
+    @Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters", groups = ValidationGroups.Registration.class)
     @Column(nullable = false, unique = true)
     private String username;
 
-    @NotBlank(message = "Password is mandatory")
-    @Size(min = 8, message = "Password must be at least 8 characters")
+    @NotBlank(message = "Password is mandatory", groups = ValidationGroups.Registration.class)
+    @Size(min = 8, message = "Password must be at least 8 characters", groups = ValidationGroups.Registration.class)
     @Column(nullable = false)
     private String password;
 
-    @Email(message = "Email should be valid")
-    @NotBlank(message = "Email is mandatory")
+    @Email(message = "Email should be valid", groups = ValidationGroups.Registration.class)
+    @NotBlank(message = "Email is mandatory", groups = ValidationGroups.Registration.class)
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "first_name")
+    @Pattern(regexp = "^[^0-9]*$", message = "Imię nie może zawierać cyfr", groups = ValidationGroups.Update.class)
     private String firstName;
 
-    @Column(name = "last_name")
+    @Pattern(regexp = "^[^0-9]*$", message = "Nazwisko nie może zawierać cyfr", groups = ValidationGroups.Update.class)
     private String lastName;
 
-    @Column(name = "address")
-    private String address;
-
-    @Column(name = "phone")
+    @Pattern(regexp = "^[0-9]{9}$", message = "Podaj poprawny nr telefonu", groups = ValidationGroups.Update.class)
     private String phone;
+
+
+    @NotBlank(message = "Podaj poprawny adres", groups = ValidationGroups.Update.class)
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).+$", message = "Podaj poprawny adres", groups = ValidationGroups.Update.class)
+    private String address;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<Order> orders = new HashSet<>();
 
-    public User() {}
+    public User() {
+    }
 
     // Gettery i settery
 

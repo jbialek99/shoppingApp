@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pl" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -13,22 +12,32 @@
 
     <!-- Formularz dla danych użytkownika -->
     <form th:action="@{/my-data}" method="post" th:object="${user}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
         <div>
             <label for="firstName">Imię:</label>
-            <input type="text" id="firstName" th:field="*{firstName}" placeholder="Imię">
+            <input type="text" id="firstName" th:field="*{firstName}" placeholder="Imię" required>
+            <div th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="error"></div>
         </div>
+
         <div>
             <label for="lastName">Nazwisko:</label>
-            <input type="text" id="lastName" th:field="*{lastName}" placeholder="Nazwisko">
+            <input type="text" id="lastName" th:field="*{lastName}" placeholder="Nazwisko" required>
+            <div th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="error"></div>
         </div>
+
         <div>
             <label for="address">Adres:</label>
-            <input type="text" id="address" th:field="*{address}" placeholder="Adres">
+            <input type="text" id="address" th:field="*{address}" placeholder="Adres" required>
+            <div th:if="${#fields.hasErrors('address')}" th:errors="*{address}" class="error"></div>
         </div>
+
         <div>
             <label for="phone">Telefon:</label>
-            <input type="text" id="phone" th:field="*{phone}" placeholder="Telefon">
+            <input type="text" id="phone" th:field="*{phone}" placeholder="Podaj 9 cyfr bez spacji" required>
+            <div th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="error"></div>
         </div>
+
         <button type="submit">Zapisz dane</button>
     </form>
 
