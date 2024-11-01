@@ -12,7 +12,8 @@
     <!-- Koszyk -->
     <a href="/cart" class="cart-icon">
         <img src="/images/cart-icon.jpg" alt="Koszyk">
-        <div th:if="${itemCount > 0}" class="cart-badge" th:text="${itemCount}">1</div>
+        <!-- Wyświetl itemCount tylko jeśli większe od zera -->
+        <div th:if="${session.itemCount > 0}" class="cart-badge" th:text="${session.itemCount}">1</div>
     </a>
     <a href="/contact">Kontakt</a>
 

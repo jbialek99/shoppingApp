@@ -1,19 +1,19 @@
 package com.example.shoppingapp.controller;
 
-import com.example.shoppingapp.model.Order;
-import com.example.shoppingapp.model.OrderItem;
-import com.example.shoppingapp.model.Product;
-import com.example.shoppingapp.model.User;
+import com.example.shoppingapp.model.*;
 import com.example.shoppingapp.repository.OrderRepository;
 import com.example.shoppingapp.repository.ProductRepository;
 import com.example.shoppingapp.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -40,10 +40,12 @@ public class CartController {
     @GetMapping
     public String viewCart(Model model, HttpSession session, @AuthenticationPrincipal UserDetails userDetails) {
         Order order = getOrderFromSessionOrDatabase(userDetails, session);
-        int itemCount = (order.getOrderItems() != null) ? order.getOrderItems().size() : 0;
 
+        // Ustawienie itemCount w sesji i modelu
+        int itemCount = (order.getOrderItems() != null) ? order.getOrderItems().size() : 0;
+        session.setAttribute("itemCount", itemCount);
+        model.addAttribute("itemCount", itemCount);
         model.addAttribute("order", order);
-        model.addAttribute("itemCount", itemCount); // Ustawienie liczby produktów w koszyku
 
         return "cart";
     }
@@ -83,7 +85,6 @@ public class CartController {
                             HttpSession session,
                             RedirectAttributes redirectAttributes) {
 
-        // Pobierz koszyk z sesji lub z bazy danych
         Order order = getOrderFromSessionOrDatabase(userDetails, session);
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Produkt nie znaleziony"));
@@ -93,7 +94,6 @@ public class CartController {
             return "redirect:/home";
         }
 
-        // Dodaj produkt do koszyka
         Optional<OrderItem> existingItem = order.getOrderItems().stream()
                 .filter(item -> item.getProduct().getId().equals(productId))
                 .findFirst();
@@ -113,12 +113,12 @@ public class CartController {
             order.getOrderItems().add(orderItem);
         }
 
-        // Zaktualizuj całkowitą cenę i zapisz zamówienie
         updateTotalPrice(order);
         saveOrder(userDetails, session, order);
 
-        // Ustaw `itemCount` dla widoku
+        // Ustaw `itemCount` w sesji i dodaj do `RedirectAttributes`
         int itemCount = order.getOrderItems().size();
+        session.setAttribute("itemCount", itemCount);
         redirectAttributes.addFlashAttribute("itemCount", itemCount);
         redirectAttributes.addFlashAttribute("message", "Produkt został dodany do koszyka!");
 
@@ -172,69 +172,57 @@ public class CartController {
     // Obsługa przesyłania formularza checkout
     @Transactional
     @PostMapping("/checkout/submit")
-    public String submitCheckout(@ModelAttribute User user, @AuthenticationPrincipal UserDetails userDetails, HttpSession session, RedirectAttributes redirectAttributes) {
-        String username = null;
-
-        // Zbieranie nazwy użytkownika, jeśli użytkownik jest zalogowany
-        if (userDetails != null) {
-            username = userDetails.getUsername();
-            System.out.println("Zalogowany użytkownik: " + username); // Logowanie nazwy użytkownika
+    public String submitCheckout(@Validated(ValidationGroups.Update.class) @ModelAttribute User user,
+                                 BindingResult result,
+                                 @AuthenticationPrincipal UserDetails userDetails,
+                                 HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            model.addAttribute("user", user);
+            return "checkout";
         }
 
-        // Użyj metody, która pobiera zamówienie na podstawie użytkownika
+        String username = null;
+        if (userDetails != null) {
+            username = userDetails.getUsername();
+        }
+
         Order order = getOrderFromSessionOrDatabaseByUsername(username, session);
 
-        // Debugowanie
-        System.out.println("Zamówienie: " + order);
-        System.out.println("Zawartość zamówienia: " + order.getOrderItems());
-
-        // Sprawdzanie, czy zamówienie istnieje i czy koszyk nie jest pusty
         if (order == null || order.getOrderItems().isEmpty()) {
             redirectAttributes.addFlashAttribute("message", "Koszyk jest pusty, dodaj produkty przed złożeniem zamówienia.");
             return "redirect:/cart";
         }
 
-        // Przypisanie danych kontaktowych
+        // Przypisz dane kontaktowe do zamówienia
         if (username != null) {
-            // Dla zalogowanego użytkownika
             User existingUser = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Użytkownik nie znaleziony"));
-
             order.setUser(existingUser);
             order.setContactName(existingUser.getFirstName() + " " + existingUser.getLastName());
             order.setContactPhone(existingUser.getPhone());
             order.setContactAddress(existingUser.getAddress());
         } else {
-            // Dla niezalogowanego użytkownika, użyj danych z formularza
             order.setContactName(user.getFirstName() + " " + user.getLastName());
             order.setContactPhone(user.getPhone());
             order.setContactAddress(user.getAddress());
         }
 
-        // Aktualizacja stanu magazynowego i zatwierdzenie zamówienia
-        for (OrderItem item : order.getOrderItems()) {
-            Product product = productRepository.findById(item.getProduct().getId())
-                    .orElseThrow(() -> new RuntimeException("Produkt nie znaleziony"));
-            if (product.getStock() < item.getQuantity()) {
-                redirectAttributes.addFlashAttribute("message", "Przepraszamy, ale produkt " + product.getName() + " jest dostępny w ograniczonej ilości.");
-                return "redirect:/cart";
-            }
-            product.setStock(product.getStock() - item.getQuantity());
-            productRepository.save(product);
-        }
-
-        // Ustawienie statusu zamówienia na "CONFIRMED" i zapis w bazie
+        // Finalizacja zamówienia
         order.setStatus("CONFIRMED");
         orderRepository.save(order);
 
-        // Czyszczenie koszyka z sesji dla niezalogowanych
+        // Usuwanie liczby elementów z koszyka z sesji
+        session.removeAttribute("itemCount");
+
         if (username == null) {
             session.removeAttribute("cart");
         }
 
-        redirectAttributes.addFlashAttribute("message", "Zamówienie zostało złożone i zostanie zrealizowane.");
+        redirectAttributes.addFlashAttribute("message", "Zamówienie zostało złożone.");
         return "redirect:/home";
     }
+
+
 
 
     @Transactional

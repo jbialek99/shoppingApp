@@ -10,7 +10,7 @@
     <h2 class="checkout-title">Dane do wysyłki</h2>
 
     <!-- Komunikat o błędzie lub powodzeniu -->
-    <div th:if="${message}" class="message">
+    <div th:if="${message}" class="message" th:classappend="${#fields.hasGlobalErrors()} ? 'message-error' : 'message-success'">
         <p th:text="${message}"></p>
     </div>
 
@@ -21,23 +21,26 @@
         <div class="form-group">
             <label for="firstName">Imię:</label>
             <input type="text" id="firstName" th:field="*{firstName}" placeholder="Imię" required>
+            <div th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="error"></div>
         </div>
         <div class="form-group">
             <label for="lastName">Nazwisko:</label>
             <input type="text" id="lastName" th:field="*{lastName}" placeholder="Nazwisko" required>
+            <div th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="error"></div>
         </div>
         <div class="form-group">
             <label for="address">Adres:</label>
             <input type="text" id="address" th:field="*{address}" placeholder="Adres" required>
+            <div th:if="${#fields.hasErrors('address')}" th:errors="*{address}" class="error"></div>
         </div>
         <div class="form-group">
             <label for="phone">Telefon:</label>
             <input type="text" id="phone" th:field="*{phone}" placeholder="Telefon" required>
+            <div th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="error"></div>
         </div>
 
         <button type="submit" class="confirm-btn">Zatwierdź zamówienie</button>
     </form>
-
     <!-- Przycisk powrotu na stronę główną -->
     <div>
         <button type="button" onclick="window.location.href='/cart'" class="back-home-btn-full">Powrót do koszyka

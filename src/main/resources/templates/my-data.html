@@ -10,6 +10,11 @@
 <div class="container">
     <h2>Moje Dane</h2>
 
+    <!-- Komunikat o sukcesie lub błędzie -->
+    <div th:if="${message}" class="message" th:classappend="${#fields.hasGlobalErrors()} ? 'message-error' : 'message-success'">
+        <p th:text="${message}"></p>
+    </div>
+
     <!-- Formularz dla danych użytkownika -->
     <form th:action="@{/my-data}" method="post" th:object="${user}">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
@@ -43,11 +48,6 @@
 
     <!-- Przycisk powrotu do strony głównej -->
     <a th:href="@{/home}" class="back-button">Powrót do strony głównej</a>
-
-    <!-- Wiadomość potwierdzenia lub błędu -->
-    <div th:if="${message}" class="message">
-        <p th:text="${message}"></p>
-    </div>
 </div>
 
 </body>
