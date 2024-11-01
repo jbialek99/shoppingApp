@@ -9,15 +9,16 @@
 <body>
 
 <div class="header-bar">
-    <!-- Koszyk z ikoną -->
+    <!-- Koszyk -->
     <a href="/cart" class="cart-icon">
         <img src="/images/cart-icon.jpg" alt="Koszyk">
         <div th:if="${itemCount > 0}" class="cart-badge" th:text="${itemCount}">1</div>
     </a>
+    <a href="/contact">Kontakt</a>
 
     <!-- Linki dla niezalogowanych użytkowników -->
     <a href="/login" sec:authorize="isAnonymous()">Zaloguj się</a>
-    <a href="/register" sec:authorize="isAnonymous()">Zarejestruj się</a>
+    <a href="/register" sec:authorize="isAnonymous()">Utwórz konto</a>
 
     <!-- Link "Moje dane" i wylogowanie tylko dla zalogowanych użytkowników -->
     <a href="/my-data" sec:authorize="isAuthenticated()">Moje dane</a>
@@ -56,11 +57,11 @@
         </div>
     </section>
 
-    <!-- Stopka z linkiem do strony kontaktowej -->
+    <!-- Stopka -->
     <footer>
-        <p>&copy; 2024 shoppingApp Wszystkie prawa zastrzeżone.</p>
-        <p><a href="/contact">Kontakt</a></p> <!-- Dodano link do strony kontaktowej -->
+        <p>&copy; 2024 shoppingApp Wszystkie prawa zastrzeżone ;D</p>
     </footer>
 </div>
+
 </body>
 </html>

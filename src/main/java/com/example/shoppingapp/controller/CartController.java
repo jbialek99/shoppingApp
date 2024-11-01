@@ -40,7 +40,11 @@ public class CartController {
     @GetMapping
     public String viewCart(Model model, HttpSession session, @AuthenticationPrincipal UserDetails userDetails) {
         Order order = getOrderFromSessionOrDatabase(userDetails, session);
+        int itemCount = (order.getOrderItems() != null) ? order.getOrderItems().size() : 0;
+
         model.addAttribute("order", order);
+        model.addAttribute("itemCount", itemCount); // Ustawienie liczby produktów w koszyku
+
         return "cart";
     }
 
@@ -74,15 +78,22 @@ public class CartController {
 
     @Transactional
     @PostMapping("/add/{productId}")
-    public String addToCart(@PathVariable Long productId, @AuthenticationPrincipal UserDetails userDetails, HttpSession session, RedirectAttributes redirectAttributes) {
+    public String addToCart(@PathVariable Long productId,
+                            @AuthenticationPrincipal UserDetails userDetails,
+                            HttpSession session,
+                            RedirectAttributes redirectAttributes) {
+
+        // Pobierz koszyk z sesji lub z bazy danych
         Order order = getOrderFromSessionOrDatabase(userDetails, session);
-        Product product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("Produkt nie znaleziony"));
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Produkt nie znaleziony"));
 
         if (product.getStock() <= 0) {
-            redirectAttributes.addFlashAttribute("message", "Przepraszamy, ale obecnie nie mamy tego produktu na stanie.");
+            redirectAttributes.addFlashAttribute("message", "Przepraszamy, produkt nie jest dostępny.");
             return "redirect:/home";
         }
 
+        // Dodaj produkt do koszyka
         Optional<OrderItem> existingItem = order.getOrderItems().stream()
                 .filter(item -> item.getProduct().getId().equals(productId))
                 .findFirst();
@@ -90,7 +101,8 @@ public class CartController {
         if (existingItem.isPresent()) {
             OrderItem orderItem = existingItem.get();
             orderItem.setQuantity(orderItem.getQuantity() + 1);
-            orderItem.setTotalItemPrice(orderItem.getProduct().getPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity())));
+            orderItem.setTotalItemPrice(orderItem.getProduct().getPrice()
+                    .multiply(BigDecimal.valueOf(orderItem.getQuantity())));
         } else {
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
@@ -101,15 +113,15 @@ public class CartController {
             order.getOrderItems().add(orderItem);
         }
 
-        // Aktualizujemy całkową cenę zamówienia
+        // Zaktualizuj całkowitą cenę i zapisz zamówienie
         updateTotalPrice(order);
         saveOrder(userDetails, session, order);
 
-        // Debugging
-        System.out.println("Dodano produkt do koszyka: " + product.getName());
-        System.out.println("Zawartość koszyka: " + order.getOrderItems());
-
+        // Ustaw `itemCount` dla widoku
+        int itemCount = order.getOrderItems().size();
+        redirectAttributes.addFlashAttribute("itemCount", itemCount);
         redirectAttributes.addFlashAttribute("message", "Produkt został dodany do koszyka!");
+
         return "redirect:/home";
     }
 

@@ -43,7 +43,8 @@ public class UserController {
 
     // Obsługa rejestracji
     @PostMapping("/register")
-    public String register(@Valid User user, BindingResult result,
+    public String register(@Validated(ValidationGroups.Registration.class) User user,
+                           BindingResult result,
                            @RequestParam("confirm_password") String confirmPassword,
                            RedirectAttributes redirectAttributes) {
 
@@ -53,7 +54,7 @@ public class UserController {
         }
 
         if (result.hasErrors()) {
-            redirectAttributes.addFlashAttribute("error", "Formularz zawiera błędy.");
+            redirectAttributes.addFlashAttribute("error", "Haslo nie spelnia wymagan.");
             return "redirect:/register";
         }
 

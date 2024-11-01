@@ -26,7 +26,11 @@ public class User implements UserDetails {
     private String username;
 
     @NotBlank(message = "Password is mandatory", groups = ValidationGroups.Registration.class)
-    @Size(min = 8, message = "Password must be at least 8 characters", groups = ValidationGroups.Registration.class)
+    @Pattern(
+            regexp = "^(?=.*[A-Z])(?=.*\\d).{8,}$",
+            message = "Hasło musi mieć min. 8 znaków, zawierać dużą literę i cyfrę",
+            groups = ValidationGroups.Registration.class
+    )
     @Column(nullable = false)
     private String password;
 

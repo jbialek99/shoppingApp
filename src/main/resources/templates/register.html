@@ -25,7 +25,7 @@
         <input type="email" id="email" th:field="*{email}" required>
         <div style="color:red;" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
 
-        <label for="password">Hasło: <span class="hint">(min 8 znaków)</span></label>
+        <label for="password">Hasło: <span class="hint">(Min 8 znakow, Duza litera, Cyfra)</span></label>
         <input type="password" id="password" th:field="*{password}" required>
         <div style="color:red;" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
 
