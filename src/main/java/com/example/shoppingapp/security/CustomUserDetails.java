@@ -15,8 +15,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Możesz zwrócić listę uprawnień użytkownika
-        return null; // Zaimplementuj uprawnienia, jeśli są
+        return null;
     }
 
     @Override

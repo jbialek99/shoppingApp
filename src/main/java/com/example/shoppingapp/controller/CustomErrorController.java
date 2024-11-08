@@ -11,10 +11,8 @@ public class CustomErrorController implements ErrorController {
 
     @RequestMapping("/error")
     public String handleError(HttpServletRequest request) {
-        // pobranie statusu błędu
         Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
 
-        // Sprawdzanie kodu błędu 404 i redirect home
         if (status != null) {
             int statusCode = Integer.parseInt(status.toString());
             if (statusCode == 404) {
@@ -22,7 +20,7 @@ public class CustomErrorController implements ErrorController {
             }
         }
 
-        // inne bledy (w toku, ale bedzie duzo...)
+
         return "error";
     }
 }
