@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:latest  # Użyj najnowszego obrazu MySQL
+    environment:
+      MYSQL_DATABASE: app_database      # Nazwa bazy danych
+      MYSQL_ROOT_PASSWORD: rootpassword  # Hasło dla roota
+      MYSQL_USER: youruser               # Inny użytkownik (zmień na coś innego niż 'root')
+      MYSQL_PASSWORD: coderslab          # Hasło dla innego użytkownika
+    ports:
+      - "3307:3306"  # Mapowanie portu, aby dostęp do MySQL był możliwy lokalnie
+    volumes:
+      - dbdata:/var/lib/mysql  # Persist data, aby zachować dane po zamknięciu kontenera
+
+volumes:
+  dbdata:  # Definicja wolumenu do przechowywania danych

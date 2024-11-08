@@ -3,9 +3,6 @@ package com.example.shoppingapp.controller;
 import com.example.shoppingapp.model.User;
 import com.example.shoppingapp.model.ValidationGroups;
 import com.example.shoppingapp.repository.UserRepository;
-import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -54,7 +51,11 @@ public class UserController {
         }
 
         if (result.hasErrors()) {
-            redirectAttributes.addFlashAttribute("error", "Haslo nie spelnia wymagan.");
+            if (result.getFieldError("password") != null) {
+                redirectAttributes.addFlashAttribute("error", "Hasło nie spełnia wymagań.");
+            } else {
+                redirectAttributes.addFlashAttribute("error", "Formularz zawiera bledy");
+            }
             return "redirect:/register";
         }
 
@@ -130,7 +131,7 @@ public class UserController {
     }
 
     // Obsługa aktualizacji danych użytkownika
-    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
 
 
     @PostMapping("/my-data")
@@ -139,11 +140,11 @@ public class UserController {
                                Principal principal,
                                Model model,
                                RedirectAttributes redirectAttributes) {
-        logger.info("Entered updateMyData method");
+
 
         // Sprawdzenie błędów walidacji
         if (result.hasErrors()) {
-            logger.error("Validation errors found: {}", result.getAllErrors());
+
             model.addAttribute("user", user); // Przekazanie użytkownika z błędami do modelu
             return "my-data"; // Powrót do widoku my-data z błędami walidacji
         }
@@ -155,8 +156,6 @@ public class UserController {
 
             if (existingUserOptional.isPresent()) {
                 User existingUser = existingUserOptional.get();
-                logger.info("Found existing user: {}", existingUser.getUsername());
-
                 // Aktualizacja pól użytkownika
                 existingUser.setFirstName(user.getFirstName());
                 existingUser.setLastName(user.getLastName());
@@ -165,18 +164,13 @@ public class UserController {
 
                 // Zapis do bazy danych
                 userRepository.save(existingUser);
-                logger.info("User data updated successfully for: {}", existingUser.getUsername());
+
 
                 // Ustawienie komunikatu o sukcesie
                 redirectAttributes.addFlashAttribute("message", "Pomyślnie ustawiono Twoje dane.");
                 return "redirect:/home"; // Przekierowanie na `home`
-            } else {
-                logger.error("User not found in the database: {}", username);
             }
-        } else {
-            logger.error("Principal is null, user is not authenticated");
         }
-
         // W razie problemów zwróć formularz z komunikatem o błędzie
         model.addAttribute("error", "Wystąpił problem z aktualizacją danych użytkownika.");
         return "my-data";

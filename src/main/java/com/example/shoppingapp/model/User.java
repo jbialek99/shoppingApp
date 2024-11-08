@@ -8,13 +8,18 @@ import jakarta.validation.constraints.Size;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable; // Importowanie Serializable
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.io.Serial; // Importowanie Serial
 
 @Entity
 @Table(name = "users")
-public class User implements UserDetails {
+public class User implements UserDetails, Serializable {
+
+    @Serial // To wskazuje, że to pole jest przeznaczone do serializacji
+    private static final long serialVersionUID = 1L; // serialVersionUID dla kontroli wersji
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,8 +53,7 @@ public class User implements UserDetails {
     @Pattern(regexp = "^[0-9]{9}$", message = "Podaj poprawny nr telefonu", groups = ValidationGroups.Update.class)
     private String phone;
 
-
-    @NotBlank(message = "Podaj poprawny adres", groups = ValidationGroups.Update.class)
+    @NotBlank(message = "Email nie moze byc pusty", groups = ValidationGroups.Update.class)
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).+$", message = "Podaj poprawny adres", groups = ValidationGroups.Update.class)
     private String address;
 
@@ -60,7 +64,6 @@ public class User implements UserDetails {
     }
 
     // Gettery i settery
-
     public Long getId() {
         return id;
     }
@@ -135,7 +138,8 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        // Przykładowa rola, możesz rozszerzyć ją o więcej ról
+        return Set.of(() -> "ROLE_USER");
     }
 
     @Override
