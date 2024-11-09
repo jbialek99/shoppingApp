@@ -132,8 +132,6 @@ public class UserController {
 
     // Obsługa aktualizacji danych użytkownika
 
-
-
     @PostMapping("/my-data")
     public String updateMyData(@Validated(ValidationGroups.Update.class) User user,
                                BindingResult result,
